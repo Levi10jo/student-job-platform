@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyWork – Die Jobplattform für Studenten</title>
+  <meta name="description" content="StudyWork verbindet Studenten mit passenden Werkstudenten-, Praktikums- und Minijobs. Schnell suchen, einfach bewerben." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23ffc94d'/%3E%3Cg fill='none' stroke='%2320302a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='8.5' width='14' height='10' rx='1.5'/%3E%3Cpath d='M9.5 8.5V7a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 7v1.5'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Theme vor dem Rendern setzen, um ein Aufblitzen des falschen Designs (FOUC) zu vermeiden -->
+  <script>document.documentElement.dataset.theme = localStorage.getItem('sw-theme') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+</head>
+<body data-page="home">
+  <header class="site-header" id="site-header"></header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow">🎓 Für Studenten gemacht</span>
+        <h1>Dein Studentenjob ist nur <span class="hl">ein paar Klicks</span> entfernt.</h1>
+        <p class="lead">
+          StudyWork bündelt Werkstudenten-, Praktikums- und Minijobs an einem Ort.
+          Filtere nach Ort und Typ, sieh dir die Details an und bewirb dich in Minuten.
+        </p>
+        <!-- Quick search: a plain GET form – jobs.html reads ?title= from the URL -->
+        <form class="hero-search" action="jobs.html" method="get" role="search" aria-label="Jobs durchsuchen">
+          <label class="visually-hidden" for="hero-q">Wonach suchst du?</label>
+          <input class="input" type="search" id="hero-q" name="title" placeholder="Wonach suchst du? z. B. Marketing" />
+          <button class="btn btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Suchen
+          </button>
+        </form>
+        <div class="hero-actions">
+          <a class="btn btn-secondary" href="jobs.html">Alle Jobs ansehen</a>
+          <a class="btn btn-ghost" href="company-dashboard.html">Job inserieren</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live-Statistiken -->
+    <section class="section">
+      <div class="container">
+        <div class="grid grid-stats" id="stats">
+          <div class="stat-card"><div class="num" id="stat-jobs">–</div><div class="label">Offene Jobs</div></div>
+          <div class="stat-card"><div class="num" id="stat-companies">–</div><div class="label">Unternehmen</div></div>
+          <div class="stat-card"><div class="num">5</div><div class="label">Job-Typen</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Neueste Jobs (live aus der API) -->
+    <section class="section">
+      <div class="container">
+        <div class="row-between" style="margin-bottom:18px;">
+          <h2 class="mb-0">Frisch ausgeschrieben</h2>
+          <a class="btn btn-ghost btn-sm" href="jobs.html">Alle Jobs ansehen →</a>
+        </div>
+        <div class="grid grid-jobs" id="latest-jobs">
+          <div class="skeleton skel-card" aria-hidden="true"></div>
+          <div class="skeleton skel-card" aria-hidden="true"></div>
+          <div class="skeleton skel-card" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Warum StudyWork?</h2>
+          <p>Eine schlanke Plattform – ohne unnötige Hürden, für beide Seiten.</p>
+        </div>
+        <div class="grid feature-grid">
+          <article class="feature">
+            <div class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+            <h3>Passende Jobs finden</h3>
+            <p>Filtere gezielt nach Stichwort, Ort und Anstellungsart – von Werkstudent bis Minijob.</p>
+          </article>
+          <article class="feature">
+            <div class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+            <h3>In Minuten bewerben</h3>
+            <p>Kein langwieriges Profil nötig. Name, E-Mail und ein kurzes Anschreiben genügen.</p>
+          </article>
+          <article class="feature">
+            <div class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+            <h3>Für Unternehmen</h3>
+            <p>Stellen ausschreiben und alle Bewerbungen übersichtlich an einem Ort verwalten.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abschluss-CTA -->
+    <section class="section">
+      <div class="container">
+        <div class="card card-pad row-between" style="gap:20px;">
+          <div>
+            <h2 class="mb-0">Bereit loszulegen?</h2>
+            <p class="text-muted mb-0">Stöbere durch aktuelle Stellen oder schreibe deine erste aus.</p>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="jobs.html">Jobs ansehen</a>
+            <a class="btn btn-secondary" href="company-dashboard.html">Zum Unternehmensbereich</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/api.js" defer></script>
+  <!-- Kleine, seitenspezifische Logik: Live-Zahlen + neueste Jobs laden -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { API, renderJobCard } = window.StudyWork;
+      const latestEl = document.getElementById('latest-jobs');
+      try {
+        const [jobs, companies] = await Promise.all([
+          API.jobs.list({ status: 'aktiv' }),
+          API.companies.list(),
+        ]);
+        document.getElementById('stat-jobs').textContent = jobs.length;
+        document.getElementById('stat-companies').textContent = companies.length;
+
+        // The API returns newest first – show the three most recent postings.
+        const latest = jobs.slice(0, 3);
+        latestEl.innerHTML = latest.length
+          ? latest.map(renderJobCard).join('')
+          : '<div class="empty-state" style="grid-column:1/-1;"><h3>Noch keine Jobs online</h3><p>Schau bald wieder vorbei – neue Stellen sind in Arbeit.</p></div>';
+      } catch (err) {
+        // Startseite bleibt nutzbar – Platzhalter "–" bleibt einfach stehen.
+        document.getElementById('stat-jobs').textContent = '–';
+        document.getElementById('stat-companies').textContent = '–';
+        latestEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>Jobs konnten nicht geladen werden</h3><p>Bitte versuche es später erneut.</p></div>';
+      }
+    });
+  </script>
+</body>
+</html>

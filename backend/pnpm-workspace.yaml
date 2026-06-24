@@ -1,0 +1,9 @@
+# pnpm-Konfiguration (pnpm v10/v11 liest Build-Entscheidungen aus dieser Datei).
+#
+# @scarf/scarf ist ein Telemetrie-Paket (Transitiv-Abhängigkeit). pnpm blockiert
+# dessen Install-/Build-Skript standardmäßig und verlangt eine bewusste
+# Entscheidung. Wir setzen es auf "false" – das Skript wird nicht ausgeführt
+# (kein Telemetrie-Ping nötig). Damit läuft "pnpm install" / "pnpm start" ohne
+# den Fehler ERR_PNPM_IGNORED_BUILDS durch.
+allowBuilds:
+  '@scarf/scarf': false

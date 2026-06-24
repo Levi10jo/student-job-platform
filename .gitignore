@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Umgebungsvariablen / Secrets (niemals einchecken!)
+.env
+.env.local
+.env.preview
+
+# Logs
+*.log
+npm-debug.log*
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Tooling (lokal)
+.claude/
+
+# Interne Materialien – NICHT Teil der Abgabe (Ausarbeitung, Planung,
+# Erklärungen, Aufgabenstellung etc. werden separat verwaltet)
+Extra/

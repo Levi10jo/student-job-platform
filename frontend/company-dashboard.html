@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unternehmens-Dashboard – StudyWork</title>
+  <meta name="description" content="Stellenanzeigen erstellen und Bewerbungen verwalten – das StudyWork-Dashboard für Unternehmen." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23ffc94d'/%3E%3Cg fill='none' stroke='%2320302a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='8.5' width='14' height='10' rx='1.5'/%3E%3Cpath d='M9.5 8.5V7a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 7v1.5'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script>document.documentElement.dataset.theme = localStorage.getItem('sw-theme') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+</head>
+<body data-page="company">
+  <header class="site-header" id="site-header"></header>
+
+  <main>
+    <div class="container">
+      <div class="page-head">
+        <h1>Unternehmens-Dashboard</h1>
+        <p>Verwalte deine Stellenanzeigen und behalte alle Bewerbungen im Blick.</p>
+      </div>
+
+      <!-- Profilleiste des eingeloggten Unternehmens (per JS befüllt) -->
+      <div class="card card-pad" style="margin-bottom:24px;" id="company-bar" hidden>
+        <div class="toolbar">
+          <div style="flex:1 1 240px;min-width:0;">
+            <span class="text-muted" style="font-size:0.85rem;">Angemeldet als</span>
+            <h2 class="mb-0" id="company-bar-name"></h2>
+          </div>
+          <button class="btn btn-secondary" id="edit-company-btn" type="button">Profil bearbeiten</button>
+          <button class="btn btn-danger" id="delete-company-btn" type="button">Konto löschen</button>
+        </div>
+      </div>
+
+      <!-- Dynamischer Dashboard-Inhalt -->
+      <section id="dashboard-content" aria-live="polite"></section>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <!-- Modal: Unternehmen registrieren / bearbeiten -->
+  <div class="modal-backdrop" id="company-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
+      <div class="modal-head">
+        <h2 id="company-modal-title">Profil bearbeiten</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Dialog schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="company-form" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="company-id" />
+          <div class="form-group">
+            <label for="company-name">Name <span class="required" aria-hidden="true">*</span></label>
+            <input class="input" type="text" id="company-name" name="name" maxlength="100" />
+            <span class="field-error" id="err-name"></span>
+          </div>
+          <div class="form-group">
+            <label for="company-email">E-Mail <span class="required" aria-hidden="true">*</span></label>
+            <input class="input" type="email" id="company-email" name="email" autocomplete="email" maxlength="100" />
+            <span class="field-error" id="err-email"></span>
+          </div>
+          <div class="form-group">
+            <label for="company-description">Beschreibung</label>
+            <textarea class="textarea" id="company-description" name="description" maxlength="2000" placeholder="Worum geht es in deinem Unternehmen?"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="company-website">Website</label>
+            <input class="input" type="text" id="company-website" name="website" maxlength="255" placeholder="https://…" />
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" type="button" data-close>Abbrechen</button>
+          <button class="btn btn-primary" type="submit" id="company-submit">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Job erstellen / bearbeiten -->
+  <div class="modal-backdrop" id="job-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="job-modal-title">
+      <div class="modal-head">
+        <h2 id="job-modal-title">Neuen Job erstellen</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Dialog schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="job-form" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="job-id" />
+          <div class="form-group">
+            <label for="job-title">Titel <span class="required" aria-hidden="true">*</span></label>
+            <input class="input" type="text" id="job-title" name="title" maxlength="150" />
+            <span class="field-error" id="err-title"></span>
+          </div>
+          <div class="form-group">
+            <label for="job-description">Beschreibung <span class="required" aria-hidden="true">*</span></label>
+            <textarea class="textarea" id="job-description" name="description" maxlength="5000"></textarea>
+            <span class="field-error" id="err-description"></span>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="job-type">Anstellungsart <span class="required" aria-hidden="true">*</span></label>
+              <select class="select" id="job-type" name="job_type">
+                <option value="">Bitte wählen…</option>
+                <option value="Werkstudent">Werkstudent</option>
+                <option value="Praktikum">Praktikum</option>
+                <option value="Teilzeit">Teilzeit</option>
+                <option value="Vollzeit">Vollzeit</option>
+                <option value="Minijob">Minijob</option>
+              </select>
+              <span class="field-error" id="err-job_type"></span>
+            </div>
+            <div class="form-group">
+              <label for="job-status">Status</label>
+              <select class="select" id="job-status" name="status">
+                <option value="aktiv">aktiv</option>
+                <option value="pausiert">pausiert</option>
+                <option value="geschlossen">geschlossen</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="job-location">Ort</label>
+              <input class="input" type="text" id="job-location" name="location" maxlength="100" placeholder="z. B. Berlin oder Remote" />
+            </div>
+            <div class="form-group">
+              <label for="job-salary">Vergütung</label>
+              <input class="input" type="text" id="job-salary" name="salary_range" maxlength="50" placeholder="z. B. 15 €/h" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" type="button" data-close>Abbrechen</button>
+          <button class="btn btn-primary" type="submit" id="job-submit">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js" defer></script>
+  <script src="js/company.js" defer></script>
+</body>
+</html>
