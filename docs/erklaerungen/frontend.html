@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyWork – Frontend erklärt</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="docnav">
+    <span class="brand">Study<span>Work</span> · Erklärungen</span>
+    <a href="index.html">Übersicht</a>
+    <a href="frontend.html" class="active">Frontend</a>
+    <a href="backend.html">Backend</a>
+    <a href="datenbank.html">Datenbank</a>
+  </nav>
+
+  <main>
+    <h1>Frontend – was der Nutzer sieht</h1>
+    <p class="subtitle">Wie wir die sichtbare Web-Oberfläche gebaut haben und warum.</p>
+
+    <div class="box key">
+      <h3>In einem Satz</h3>
+      <p style="margin-bottom:0;">Das Frontend sind die <strong>Web-Seiten im Browser</strong>. Wir haben
+      sie mit den drei Grund-Bausteinen des Webs gebaut: <strong>HTML</strong> (Struktur),
+      <strong>CSS</strong> (Aussehen) und <strong>JavaScript</strong> (Verhalten). Das JavaScript holt sich
+      die Daten vom <a href="backend.html">Backend</a> und zeigt sie an.</p>
+    </div>
+
+    <h2>Die drei Bausteine – mit einer Analogie</h2>
+    <div class="box analogy">
+      <p style="margin:0;">Denk an ein Haus: <strong>HTML ist der Rohbau</strong> (Wände, Räume, Türen),
+      <strong>CSS ist die Einrichtung und der Anstrich</strong> (Farben, Möbel, Stil) und
+      <strong>JavaScript ist die Elektrik</strong> (Lichtschalter, Bewegungsmelder – alles, was auf Aktionen
+      reagiert).</p>
+    </div>
+    <ul>
+      <li><strong>HTML</strong> legt fest, <em>was</em> auf der Seite steht: Überschriften, Textfelder,
+        Knöpfe, Listen. Jede Seite ist eine eigene <code>.html</code>-Datei.</li>
+      <li><strong>CSS</strong> legt fest, <em>wie</em> es aussieht: Farben, Abstände, Schriften, und dass es
+        auf Handy, Tablet und PC gut aussieht. Alles in einer Datei: <code>css/style.css</code>.</li>
+      <li><strong>JavaScript</strong> legt fest, <em>was passiert</em>: Klick auf „Suchen", Formular
+        absenden, Daten laden und anzeigen. Aufgeteilt in mehrere Dateien unter <code>js/</code>.</li>
+    </ul>
+    <div class="box why">
+      <h4>Warum „pures" JavaScript und kein Framework (wie React/Vue)?</h4>
+      <p style="margin-bottom:0;">Weil die Aufgabenstellung genau das verlangt (HTML/CSS/JavaScript) und
+      unser Projekt überschaubar ist. Ohne Framework bleibt der Code <strong>durchschaubar</strong> – man
+      sieht genau, was passiert, ohne eine zusätzliche „Magie"-Ebene. Das ist auch fürs Verstehen und
+      Präsentieren einfacher.</p>
+    </div>
+
+    <h2>Wie die Seiten aufgebaut sind</h2>
+    <p>Es ist eine klassische <strong>Mehrseiten-Website</strong>: Für jeden Bereich gibt es eine eigene
+      HTML-Datei. Klickt man einen Link, lädt der Browser die nächste Seite.</p>
+    <div class="filetree">frontend/
+├── index.html              ← Startseite
+├── jobs.html               ← Jobsuche (Liste + Filter)
+├── job-detail.html         ← eine Stelle im Detail + Bewerbungsformular
+├── company-dashboard.html  ← Bereich für Unternehmen
+├── profile.html            ← Studenten-Profil
+├── login.html / register.html  ← Anmelden / Registrieren
+├── 404.html                ← Fehlerseite (Seite nicht gefunden)
+├── css/style.css           ← das komplette Aussehen
+└── js/                     ← das Verhalten (JavaScript)
+    ├── api.js     ← Grundbaustein: redet mit dem Backend, lädt überall
+    ├── jobs.js    ← Logik für Jobsuche + Jobdetail
+    ├── company.js ← Logik für das Unternehmens-Dashboard
+    ├── auth.js    ← Logik für Login & Registrierung
+    └── profile.js ← Logik für das Studenten-Profil</div>
+
+    <h2>Das Herzstück: <code>api.js</code></h2>
+    <p>Diese Datei wird auf <em>jeder</em> Seite geladen. Sie hat vier Aufgaben:</p>
+    <ol>
+      <li><strong>Mit dem Backend reden.</strong> Immer wenn die Seite Daten braucht (z. B. „alle Jobs"),
+        fragt sie über <code>api.js</code> beim Backend an. Der Fachbegriff dafür ist
+        <code>fetch</code> – eine eingebaute Browser-Funktion, die eine Anfrage übers Netz schickt.</li>
+      <li><strong>Navigation &amp; Fußzeile einbauen.</strong> Damit oben überall dieselbe Menüleiste
+        erscheint (ohne sie auf jeder Seite zu kopieren).</li>
+      <li><strong>Anzeigen, wer eingeloggt ist.</strong> Beim Laden fragt die Seite „Wer bin ich?" beim
+        Backend und zeigt dann entweder „Anmelden" oder den Namen + „Abmelden".</li>
+      <li><strong>Hell-/Dunkel-Modus</strong> und kleine Helfer (z. B. Erfolgs-/Fehlermeldungen).</li>
+    </ol>
+    <div class="box why">
+      <h4>Warum eine zentrale <code>api.js</code>?</h4>
+      <p style="margin-bottom:0;">Damit die einzelnen Seiten nicht jedes Mal die technischen Details des
+      Datenaustauschs kennen müssen. Sie rufen einfach z. B. <code>API.jobs.list()</code> auf – der Rest
+      passiert im Hintergrund. Das vermeidet <strong>doppelten Code</strong> und Fehler.</p>
+    </div>
+
+    <h2>Wie eine Seite ihre Daten bekommt (Beispiel Jobsuche)</h2>
+    <ol>
+      <li>Die Seite lädt und zeigt zunächst graue Platzhalter (damit es nicht leer wirkt).</li>
+      <li>Das JavaScript fragt beim <a href="backend.html">Backend</a> nach den Jobs.</li>
+      <li>Das Backend holt sie aus der <a href="datenbank.html">Datenbank</a> und schickt sie als Daten zurück.</li>
+      <li>Das JavaScript baut aus jedem Job eine „Kachel" und setzt sie in die Seite.</li>
+      <li>Tippt man ins Suchfeld, wird automatisch neu gesucht; die Filter landen in der Adresszeile
+        (URL), sodass man einen Suchlink teilen kann.</li>
+    </ol>
+
+    <h2>Worauf wir beim Aussehen (Design) geachtet haben</h2>
+    <ul>
+      <li><strong>Einheitlicher Look</strong> („Corporate Design"): feste Farben (Creme, Grün, Bernstein),
+        ein Logo, klare Schriften – überall gleich.</li>
+      <li><strong>Responsive:</strong> funktioniert auf Handy, Tablet und Desktop; das Menü bricht auf
+        kleinen Bildschirmen sauber um.</li>
+      <li><strong>Hell-/Dunkel-Modus</strong> per Umschalter.</li>
+      <li><strong>Gute Rückmeldungen:</strong> Ladeanzeigen, freundliche „nichts gefunden"-Hinweise,
+        Erfolgs-/Fehlermeldungen als kleine Einblendungen.</li>
+    </ul>
+
+    <h2>Sicherheit im Frontend (einfach erklärt)</h2>
+    <ul>
+      <li><strong>Schutz vor Schadcode (XSS):</strong> Texte, die aus der Datenbank kommen (z. B. ein
+        Jobtitel), werden vor der Anzeige „entschärft". So kann niemand über einen manipulierten Text
+        heimlich Programmcode einschleusen.</li>
+      <li><strong>Die eigentliche Rechteprüfung passiert im <a href="backend.html">Backend</a>.</strong>
+        Das Frontend blendet Dinge nur der Bequemlichkeit halber aus – verlassen kann man sich nur auf den
+        Server. (Warum? Weil man im Browser alles manipulieren könnte – die verbindliche Kontrolle muss
+        deshalb hinter den Kulissen sitzen.)</li>
+    </ul>
+
+    <div class="box info">
+      <p style="margin:0;">➡️ Als Nächstes: <a href="backend.html">Wie das Backend die Anfragen bearbeitet</a>
+      oder <a href="datenbank.html">wie die Daten gespeichert werden</a>.</p>
+    </div>
+  </main>
+
+  <footer>StudyWork – Frontend-Erklärung · Quellen: <code>frontend/*.html</code>, <code>frontend/js/*.js</code>, <code>frontend/css/style.css</code>.</footer>
+</body>
+</html>

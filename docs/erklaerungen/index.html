@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyWork – Erklärungen (Übersicht)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="docnav">
+    <span class="brand">Study<span>Work</span> · Erklärungen</span>
+    <a href="index.html" class="active">Übersicht</a>
+    <a href="frontend.html">Frontend</a>
+    <a href="backend.html">Backend</a>
+    <a href="datenbank.html">Datenbank</a>
+  </nav>
+
+  <main>
+    <h1>StudyWork – wie funktioniert das Ganze?</h1>
+    <p class="subtitle">Diese Seiten erklären in einfachen Worten, wie unsere Web-App gebaut ist und
+      <strong>warum</strong> wir es so gemacht haben. Auch ohne Programmier-Vorwissen verständlich.</p>
+
+    <div class="box key">
+      <h3>Was ist StudyWork?</h3>
+      <p style="margin-bottom:0;"><strong>StudyWork</strong> ist eine Job-Plattform für Studenten.
+      <strong>Unternehmen</strong> schreiben Stellen aus, <strong>Studenten</strong> suchen Jobs und bewerben
+      sich. Technisch besteht die App aus drei Teilen, die zusammenarbeiten.</p>
+    </div>
+
+    <h2>Die drei Teile – mit einer Restaurant-Analogie</h2>
+    <p>Stell dir die App wie ein Restaurant vor. Dann sind die drei Teile:</p>
+    <div class="cards">
+      <div class="card">
+        <h3>🍽️ Frontend = der Gastraum</h3>
+        <p>Alles, was der Gast <strong>sieht und anfasst</strong>: Speisekarte, Tische, Bestellzettel.
+        Bei uns: die Web-Seiten im Browser (Buttons, Formulare, Job-Listen).</p>
+      </div>
+      <div class="card">
+        <h3>👨‍🍳 Backend = die Küche</h3>
+        <p>Nimmt Bestellungen an, prüft sie, kocht und gibt sie zurück. Der Gast sieht die Küche nicht.
+        Bei uns: der <strong>Server</strong>, der Anfragen bearbeitet und die Regeln durchsetzt.</p>
+      </div>
+      <div class="card">
+        <h3>🗄️ Datenbank = das Lager</h3>
+        <p>Hier liegen alle Zutaten <strong>dauerhaft</strong> gelagert. Die Küche holt sie und legt Neues
+        ab. Bei uns: <strong>MySQL</strong> speichert Firmen, Jobs, Bewerbungen usw.</p>
+      </div>
+    </div>
+    <p>Der Gast (Frontend) redet <strong>nie direkt</strong> mit dem Lager (Datenbank) – immer über die
+      Küche (Backend). Genau so ist es bei uns: Das Frontend fragt das Backend, und nur das Backend spricht
+      mit der Datenbank. Das sorgt für Ordnung und Sicherheit.</p>
+
+    <h2>Der Weg einer Aktion (Beispiel: „Bewerbung absenden")</h2>
+    <pre><code>1. FRONTEND   Du füllst das Bewerbungsformular aus und klickst „Absenden".
+              → Der Browser schickt die Daten an das Backend.
+
+2. BACKEND    Der Server prüft: Sind alle Felder da? Ist die E-Mail gültig?
+              Existiert die Stelle? Hast du dich schon beworben?
+              → Wenn alles passt, gibt er die Daten weiter.
+
+3. DATENBANK  MySQL speichert die Bewerbung dauerhaft in der Tabelle
+              „applications".
+
+4. BACKEND    Antwortet dem Browser: „Erfolg" (oder eine Fehlermeldung).
+
+5. FRONTEND   Zeigt dir „Bewerbung gesendet!" an.</code></pre>
+    <p>Details zu jedem Schritt stehen auf den drei Seiten:
+      <a href="frontend.html">Frontend</a> · <a href="backend.html">Backend</a> ·
+      <a href="datenbank.html">Datenbank</a>.</p>
+
+    <h2>Die Technologien in einem Satz</h2>
+    <table>
+      <tr><th>Teil</th><th>Womit gebaut</th><th>Kurz erklärt</th></tr>
+      <tr><td>Frontend</td><td>HTML, CSS, JavaScript</td><td>HTML = Struktur, CSS = Aussehen, JavaScript = Verhalten/Interaktion</td></tr>
+      <tr><td>Backend</td><td>Node.js + Express</td><td>Ein selbst geschriebener Server, der die REST-API bereitstellt</td></tr>
+      <tr><td>Datenbank</td><td>MySQL</td><td>Speichert alle Daten dauerhaft in Tabellen</td></tr>
+    </table>
+    <p>Frontend und Backend laufen auf <strong>demselben Port</strong> (3000): Der Server liefert auch die
+      Web-Seiten aus. Man ruft die App im Browser unter <code>http://localhost:3000</code> auf.</p>
+
+    <div class="box why">
+      <h4>Warum diese Aufteilung in drei Teile?</h4>
+      <p style="margin-bottom:0;">Weil jeder Teil eine klare Aufgabe hat. Das macht die App
+      <strong>übersichtlich</strong> (jeder weiß, wo was passiert), <strong>sicher</strong> (nur das Backend
+      darf an die Datenbank) und <strong>wartbar</strong> (man kann das Aussehen ändern, ohne die Datenbank
+      anzufassen – und umgekehrt).</p>
+    </div>
+
+    <div class="box info">
+      <p style="margin:0;"><strong>So liest du weiter:</strong> Oben kannst du jederzeit zwischen den drei
+      Bereichen wechseln. Jede Seite erklärt <em>wie</em> wir den Teil gebaut haben und <em>warum</em>.</p>
+    </div>
+  </main>
+
+  <footer>StudyWork – interne Erklärungen zum Projekt (sjp). Einfach im Browser öffnen, kein Server nötig.</footer>
+</body>
+</html>

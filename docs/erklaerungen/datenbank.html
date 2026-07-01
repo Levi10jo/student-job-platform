@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyWork – Datenbank erklärt</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="docnav">
+    <span class="brand">Study<span>Work</span> · Erklärungen</span>
+    <a href="index.html">Übersicht</a>
+    <a href="frontend.html">Frontend</a>
+    <a href="backend.html">Backend</a>
+    <a href="datenbank.html" class="active">Datenbank</a>
+  </nav>
+
+  <main>
+    <h1>Datenbank – das „Lager" aller Daten</h1>
+    <p class="subtitle">Wie wir die Daten dauerhaft speichern, wie die Tabellen zusammenhängen (UML in
+      Worten) und wie das <a href="backend.html">Backend</a> darauf zugreift.</p>
+
+    <div class="box key">
+      <h3>In einem Satz</h3>
+      <p style="margin-bottom:0;">Wir nutzen <strong>MySQL</strong> – ein Datenbanksystem, das Daten in
+      <strong>Tabellen</strong> speichert (wie viele verbundene Excel-Tabellen). Unsere Datenbank heißt
+      <code>studywork</code> und besteht aus <strong>6 Tabellen</strong>. Nur das
+      <a href="backend.html">Backend</a> spricht mit ihr.</p>
+    </div>
+
+    <h2>Was ist eine (relationale) Datenbank?</h2>
+    <div class="box analogy">
+      <p style="margin:0;">Stell dir eine <strong>Sammlung von Excel-Tabellen</strong> vor. Jede Tabelle
+      speichert eine Sorte Dinge (eine Tabelle für Unternehmen, eine für Jobs, …). Jede <strong>Zeile</strong>
+      ist ein Eintrag (z. B. ein bestimmter Job), jede <strong>Spalte</strong> ein Merkmal (z. B. der Titel).
+      Das Besondere: Die Tabellen sind <strong>miteinander verbunden</strong> – ein Job „weiß", zu welchem
+      Unternehmen er gehört.</p>
+    </div>
+    <ul>
+      <li><strong>Warum überhaupt eine Datenbank?</strong> Weil Daten <strong>dauerhaft</strong> bleiben
+        müssen – auch wenn man den Server neu startet oder den Computer ausschaltet.</li>
+      <li><strong>Warum MySQL?</strong> Es ist kostenlos, sehr verbreitet, zuverlässig und von der
+        Aufgabenstellung als Datenbank gewünscht.</li>
+      <li><strong>Zeichensatz <code>utf8mb4</code>:</strong> damit Umlaute (ä, ö, ü, ß) korrekt gespeichert
+        werden.</li>
+    </ul>
+
+    <h2>Zwei wichtige Begriffe: Primärschlüssel &amp; Fremdschlüssel</h2>
+    <ul>
+      <li><strong>Primärschlüssel (PK):</strong> eine eindeutige Nummer, die jede Zeile unverwechselbar
+        macht. Bei uns heißt sie immer <code>id</code> und wird automatisch hochgezählt (1, 2, 3, …).</li>
+      <li><strong>Fremdschlüssel (FK):</strong> eine Spalte, die auf die <code>id</code> einer anderen
+        Tabelle zeigt und so die <strong>Verbindung</strong> herstellt. Beispiel: <code>jobs.company_id</code>
+        zeigt auf <code>companies.id</code> – so „gehört" jeder Job zu einem Unternehmen.</li>
+    </ul>
+
+    <h2>Die 6 Tabellen im Überblick</h2>
+    <table>
+      <tr><th>Tabelle</th><th>Speichert</th></tr>
+      <tr><td><code>companies</code></td><td>Unternehmen (mit Login)</td></tr>
+      <tr><td><code>students</code></td><td>Studenten (mit Login, Profil, Lebenslauf)</td></tr>
+      <tr><td><code>jobs</code></td><td>Stellenanzeigen</td></tr>
+      <tr><td><code>applications</code></td><td>Bewerbungen auf Stellen</td></tr>
+      <tr><td><code>job_reports</code></td><td>Meldungen zu Anzeigen (z. B. Spam)</td></tr>
+      <tr><td><code>job_alerts</code></td><td>gespeicherte Suchen eines Studenten</td></tr>
+    </table>
+
+    <h2>Jede Tabelle im Detail (alle Felder)</h2>
+
+    <h3>companies – Unternehmen</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>name</code></td><td>Text (max. 100)</td><td>Firmenname (Pflicht)</td></tr>
+      <tr><td><code>email</code></td><td>Text (max. 100) · eindeutig</td><td>Login-/Kontakt-E-Mail</td></tr>
+      <tr><td><code>password_hash</code></td><td>Text</td><td>verschlüsseltes Passwort (nie Klartext)</td></tr>
+      <tr><td><code>description</code></td><td>langer Text</td><td>Firmenbeschreibung</td></tr>
+      <tr><td><code>website</code></td><td>Text</td><td>Web-Adresse</td></tr>
+      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+    </table>
+
+    <h3>students – Studenten</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>name</code></td><td>Text</td><td>Name (Pflicht)</td></tr>
+      <tr><td><code>email</code></td><td>Text · eindeutig</td><td>Login-E-Mail</td></tr>
+      <tr><td><code>password_hash</code></td><td>Text</td><td>verschlüsseltes Passwort</td></tr>
+      <tr><td><code>headline</code></td><td>Text</td><td>kurze Selbstbeschreibung („Über mich"-Titel)</td></tr>
+      <tr><td><code>bio</code></td><td>langer Text</td><td>ausführliches „Über mich"</td></tr>
+      <tr><td><code>skills</code></td><td>Text</td><td>Fähigkeiten (kommagetrennt)</td></tr>
+      <tr><td><code>study_program</code></td><td>Text</td><td>Studiengang</td></tr>
+      <tr><td><code>university</code></td><td>Text</td><td>Hochschule</td></tr>
+      <tr><td><code>location</code></td><td>Text</td><td>Ort</td></tr>
+      <tr><td><code>website</code></td><td>Text</td><td>Portfolio-/Web-Link</td></tr>
+      <tr><td><code>profile_visibility</code></td><td>Auswahl: <code>applied</code> / <code>all</code></td><td>wer das Profil sehen darf</td></tr>
+      <tr><td><code>cv_filename</code></td><td>Text</td><td>Dateiname des Lebenslaufs</td></tr>
+      <tr><td><code>cv_data</code></td><td>sehr langer Text</td><td>der Lebenslauf (PDF) selbst, als Text kodiert</td></tr>
+      <tr><td><code>cv_uploaded_at</code></td><td>Zeitstempel</td><td>wann hochgeladen</td></tr>
+      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+    </table>
+
+    <h3>jobs – Stellenanzeigen</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>company_id</code></td><td>Ganzzahl · <strong>FK → companies.id</strong></td><td>zu welchem Unternehmen die Anzeige gehört</td></tr>
+      <tr><td><code>title</code></td><td>Text</td><td>Jobtitel (Pflicht)</td></tr>
+      <tr><td><code>description</code></td><td>langer Text</td><td>Beschreibung (Pflicht)</td></tr>
+      <tr><td><code>location</code></td><td>Text</td><td>Ort (z. B. „Berlin", „Remote")</td></tr>
+      <tr><td><code>job_type</code></td><td>Auswahl: Teilzeit/Vollzeit/Werkstudent/Praktikum/Minijob</td><td>Anstellungsart</td></tr>
+      <tr><td><code>salary_range</code></td><td>Text</td><td>Vergütung (frei, z. B. „16–20 €/h")</td></tr>
+      <tr><td><code>status</code></td><td>Auswahl: aktiv/pausiert/geschlossen</td><td>Sichtbarkeit der Anzeige</td></tr>
+      <tr><td><code>created_at</code> / <code>updated_at</code></td><td>Zeitstempel</td><td>angelegt / zuletzt geändert</td></tr>
+    </table>
+
+    <h3>applications – Bewerbungen</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>job_id</code></td><td>Ganzzahl · <strong>FK → jobs.id</strong></td><td>auf welche Stelle</td></tr>
+      <tr><td><code>student_name</code></td><td>Text</td><td>Name des Bewerbers</td></tr>
+      <tr><td><code>student_email</code></td><td>Text</td><td>E-Mail des Bewerbers</td></tr>
+      <tr><td><code>cover_letter</code></td><td>langer Text</td><td>Anschreiben (optional)</td></tr>
+      <tr><td><code>status</code></td><td>Auswahl: offen/gesehen/angenommen/abgelehnt</td><td>Bearbeitungsstand (setzt das Unternehmen)</td></tr>
+      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann beworben</td></tr>
+    </table>
+    <div class="box info">
+      <p style="margin:0;"><strong>Wichtiges Detail:</strong> Eine Bewerbung speichert Name und E-Mail nur
+      als Text und hat <em>keinen</em> Fremdschlüssel auf <code>students</code>. Grund: Man kann sich auch
+      <strong>ohne Konto</strong> bewerben. Die Verbindung zu einem Studenten-Konto entsteht „weich" über die
+      gleiche E-Mail-Adresse (siehe UML unten).</p>
+    </div>
+
+    <h3>job_reports – Meldungen</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>job_id</code></td><td>Ganzzahl · <strong>FK → jobs.id</strong></td><td>welche Anzeige gemeldet wurde</td></tr>
+      <tr><td><code>reason</code></td><td>Text</td><td>Grund (fake, spam, …)</td></tr>
+      <tr><td><code>message</code></td><td>Text</td><td>optionale Nachricht</td></tr>
+      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann gemeldet</td></tr>
+    </table>
+
+    <h3>job_alerts – gespeicherte Suchen</h3>
+    <table>
+      <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>student_id</code></td><td>Ganzzahl · <strong>FK → students.id</strong></td><td>wem der Alert gehört</td></tr>
+      <tr><td><code>title / location / job_type</code></td><td>Text</td><td>gespeicherte Suchkriterien (leer = egal)</td></tr>
+      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+    </table>
+
+    <h2>Das UML-/ER-Modell in Worten</h2>
+    <p>Ein UML-/ER-Diagramm zeigt die Tabellen als <strong>Kästen (Entitäten)</strong> mit ihren Feldern und
+      verbindet sie mit <strong>Linien (Beziehungen)</strong>. An den Linienenden stehen
+      <strong>Multiplizitäten</strong> – sie sagen, „wie viele" auf jeder Seite zusammengehören.</p>
+
+    <div class="box key">
+      <h4>Lesehilfe für Multiplizitäten</h4>
+      <ul style="margin-bottom:0;">
+        <li><code>1</code> = genau eins</li>
+        <li><code>0..*</code> = beliebig viele (auch keine) – „*" heißt „viele"</li>
+        <li><code>0..1</code> = keins oder eins</li>
+      </ul>
+    </div>
+
+    <h3>Die Entitäten (Kästen mit Feldern)</h3>
+    <ul>
+      <li><strong>COMPANY</strong> ( <u>id</u>, name, email, password_hash, description, website, created_at )</li>
+      <li><strong>STUDENT</strong> ( <u>id</u>, name, email, password_hash, headline, bio, skills,
+        study_program, university, location, website, profile_visibility, cv_filename, cv_data,
+        cv_uploaded_at, created_at )</li>
+      <li><strong>JOB</strong> ( <u>id</u>, <em>company_id&nbsp;(FK)</em>, title, description, location,
+        job_type, salary_range, status, created_at, updated_at )</li>
+      <li><strong>APPLICATION</strong> ( <u>id</u>, <em>job_id&nbsp;(FK)</em>, student_name, student_email,
+        cover_letter, status, created_at )</li>
+      <li><strong>JOB_REPORT</strong> ( <u>id</u>, <em>job_id&nbsp;(FK)</em>, reason, message, created_at )</li>
+      <li><strong>JOB_ALERT</strong> ( <u>id</u>, <em>student_id&nbsp;(FK)</em>, title, location, job_type,
+        created_at )</li>
+    </ul>
+    <p style="color:var(--muted);font-size:0.9rem;">(<u>Unterstrichen</u> = Primärschlüssel, <em>kursiv&nbsp;(FK)</em> = Fremdschlüssel.)</p>
+
+    <h3>Die Beziehungen (Linien mit Richtung &amp; Multiplizität)</h3>
+    <table>
+      <tr><th>Beziehung</th><th>Multiplizität</th><th>Erklärung</th></tr>
+      <tr>
+        <td><strong>COMPANY → JOB</strong><br>„hat / schreibt aus"</td>
+        <td>1 : 0..*</td>
+        <td>Ein Unternehmen hat <strong>0 bis viele</strong> Stellenanzeigen; jede Anzeige gehört zu
+          <strong>genau einem</strong> Unternehmen. Umgesetzt über den Fremdschlüssel
+          <code>jobs.company_id → companies.id</code>. In Krähenfuß-Notation: „viele"-Symbol am JOB-Ende,
+          einfacher Strich am COMPANY-Ende. Pflichtbeziehung (jeder Job <em>muss</em> ein Unternehmen haben).</td>
+      </tr>
+      <tr>
+        <td><strong>JOB → APPLICATION</strong><br>„erhält"</td>
+        <td>1 : 0..*</td>
+        <td>Ein Job hat <strong>0 bis viele</strong> Bewerbungen; jede Bewerbung gehört zu
+          <strong>genau einem</strong> Job. Fremdschlüssel <code>applications.job_id → jobs.id</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>JOB → JOB_REPORT</strong><br>„wird gemeldet als"</td>
+        <td>1 : 0..*</td>
+        <td>Ein Job kann <strong>0 bis viele</strong> Meldungen haben; jede Meldung betrifft
+          <strong>genau einen</strong> Job. Fremdschlüssel <code>job_reports.job_id → jobs.id</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>STUDENT → JOB_ALERT</strong><br>„speichert"</td>
+        <td>1 : 0..*</td>
+        <td>Ein Student hat <strong>0 bis viele</strong> gespeicherte Such-Alerts; jeder Alert gehört zu
+          <strong>genau einem</strong> Studenten. Fremdschlüssel <code>job_alerts.student_id → students.id</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>STUDENT ⇠ APPLICATION</strong><br>(weiche Beziehung, ohne Fremdschlüssel)</td>
+        <td>0..1 : 0..*</td>
+        <td>Eine Bewerbung <em>kann</em> zu einem Studenten-Konto gehören – muss aber nicht (Bewerbung ohne
+          Konto ist erlaubt). Deshalb gibt es hier <strong>keinen</strong> Fremdschlüssel; verbunden wird
+          über die <strong>gleiche E-Mail-Adresse</strong> (<code>applications.student_email = students.email</code>).
+          Im Diagramm zeichnet man das als <strong>gestrichelte</strong> Linie. Multiplizität: Ein Student
+          hat 0..* Bewerbungen (alle mit seiner E-Mail); eine Bewerbung gehört zu 0 oder 1 Student.</td>
+      </tr>
+    </table>
+
+    <h3>Kurz als „Text-Diagramm"</h3>
+    <pre><code>COMPANY  1 ───&lt; 0..*  JOB  1 ───&lt; 0..*  APPLICATION
+                      JOB  1 ───&lt; 0..*  JOB_REPORT
+STUDENT  1 ───&lt; 0..*  JOB_ALERT
+STUDENT  0..1 ┄┄&lt; 0..* APPLICATION   (weich, über die E-Mail-Adresse)</code></pre>
+    <p>Das Zeichen <code>&lt;</code> ist der „Krähenfuß" und steht für das „viele"-Ende.</p>
+
+    <h2>Was passiert beim Löschen? (ON DELETE CASCADE)</h2>
+    <p>Alle Fremdschlüssel haben die Regel <strong>„CASCADE"</strong>: Wird ein „Eltern"-Eintrag gelöscht,
+      verschwinden automatisch die abhängigen „Kinder".</p>
+    <ul>
+      <li>Löscht ein Unternehmen sein Konto → alle seine <strong>Jobs</strong> werden gelöscht → dadurch auch
+        deren <strong>Bewerbungen</strong> und <strong>Meldungen</strong> (Kettenreaktion).</li>
+      <li>Löscht ein Student sein Konto → seine <strong>Job-Alerts</strong> werden gelöscht (seine Bewerbungen
+        entfernt das Backend zusätzlich anhand der E-Mail).</li>
+    </ul>
+    <div class="box why">
+      <h4>Warum CASCADE?</h4>
+      <p style="margin-bottom:0;">Damit keine „verwaisten" Daten übrig bleiben – z. B. eine Bewerbung zu
+      einem Job, den es gar nicht mehr gibt. Die Datenbank hält sich so immer selbst sauber.</p>
+    </div>
+
+    <h2>Wie das Backend an die Daten kommt (Anbindung)</h2>
+    <ul>
+      <li>Die Verbindung steht in <code>backend/db.js</code>. Wir nutzen ein „Verbindungs-Bündel"
+        (Connection Pool): Statt für jede Anfrage neu zur Datenbank zu verbinden (langsam), werden mehrere
+        Verbindungen bereitgehalten und wiederverwendet.</li>
+      <li>Die <strong>Zugangsdaten</strong> (Adresse, Benutzer, Passwort, DB-Name) stehen in einer
+        <code>.env</code>-Datei – nie im Code.</li>
+      <li>Alle Abfragen laufen als <strong>Prepared Statements</strong>: Werte werden sicher als Parameter
+        übergeben, nicht in den Befehl „geklebt". Das schützt vor <strong>SQL-Injection</strong> (dem
+        Versuch, die Datenbank über Eingabefelder auszutricksen).</li>
+    </ul>
+    <pre><code>// vereinfachtes Beispiel (im Backend)
+const [zeilen] = await pool.execute(
+  'SELECT * FROM jobs WHERE job_type = ? AND status = ?',
+  ['Werkstudent', 'aktiv']   // Werte sicher als Parameter
+);</code></pre>
+
+    <h2>Wie schaue ich selbst in die Datenbank? (GUI)</h2>
+    <p>Zwei Wege – Kommandozeile oder ein grafisches Programm:</p>
+    <h3>a) Kommandozeile</h3>
+    <pre><code>mysql -u root studywork        # verbinden
+SHOW TABLES;                    # alle Tabellen
+SELECT * FROM companies;        # alle Unternehmen ansehen
+DESCRIBE jobs;                  # Spalten der Tabelle jobs</code></pre>
+    <h3>b) Grafisches Programm (empfehlenswert)</h3>
+    <p>z. B. <strong>MySQL Workbench</strong>, <strong>DBeaver</strong>, <strong>TablePlus</strong> oder
+      <strong>phpMyAdmin</strong>. Damit klickt man sich durch die Tabellen wie durch Ordner.</p>
+    <div class="box info">
+      <h4>Verbindungsdaten für die GUI</h4>
+      <ul style="margin-bottom:0;">
+        <li>Host: <code>localhost</code> · Port: <code>3306</code></li>
+        <li>Benutzer / Passwort: wie in der <code>.env</code> (lokal z. B. <code>root</code> ohne Passwort)</li>
+        <li>Datenbank/Schema: <code>studywork</code></li>
+      </ul>
+    </div>
+
+    <h2>Einrichtung &amp; Beispieldaten</h2>
+    <p>Das Skript <code>backend/db_setup.sql</code> legt die Datenbank, alle Tabellen und Beispieldaten an.
+      Es ist <strong>idempotent</strong> (löscht vorhandene Tabellen zuerst und baut sie neu) – man kann es
+      also gefahrlos erneut ausführen, um den Ausgangszustand wiederherzustellen.</p>
+    <pre><code>mysql --default-character-set=utf8mb4 -u root &lt; backend/db_setup.sql</code></pre>
+    <p>Danach enthält die Datenbank Demo-Inhalte: 6 Unternehmen, ein Studenten-Konto, 20 Stellenanzeigen und
+      einige Bewerbungen – damit die Seite gleich „lebendig" aussieht.</p>
+
+    <div class="box info">
+      <p style="margin:0;">➡️ Zurück zur <a href="index.html">Übersicht</a>, zum
+      <a href="backend.html">Backend</a> (wie die Daten gelesen/geschrieben werden) oder zum
+      <a href="frontend.html">Frontend</a> (wie sie angezeigt werden).</p>
+    </div>
+  </main>
+
+  <footer>StudyWork – Datenbank-Erklärung · Schema: <code>backend/db_setup.sql</code>, Anbindung: <code>backend/db.js</code>.</footer>
+</body>
+</html>
