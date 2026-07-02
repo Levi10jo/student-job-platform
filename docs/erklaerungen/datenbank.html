@@ -13,287 +13,435 @@
     <a href="frontend.html">Frontend</a>
     <a href="backend.html">Backend</a>
     <a href="datenbank.html" class="active">Datenbank</a>
+    <a href="prof-fragen.html">Prof-Fragen</a>
   </nav>
 
   <main>
-    <h1>Datenbank – das „Lager" aller Daten</h1>
-    <p class="subtitle">Wie wir die Daten dauerhaft speichern, wie die Tabellen zusammenhängen (UML in
-      Worten) und wie das <a href="backend.html">Backend</a> darauf zugreift.</p>
+    <h1>Datenbank – das dauerhafte Gedächtnis der App</h1>
+    <p class="subtitle">Wie wir Daten speichern, wie die Tabellen zusammenhängen (das komplette UML-Modell in
+      Worten), wie das <a href="backend.html">Backend</a> zugreift – und warum alles so gebaut ist.</p>
 
-    <div class="box key">
-      <h3>In einem Satz</h3>
-      <p style="margin-bottom:0;">Wir nutzen <strong>MySQL</strong> – ein Datenbanksystem, das Daten in
-      <strong>Tabellen</strong> speichert (wie viele verbundene Excel-Tabellen). Unsere Datenbank heißt
-      <code>studywork</code> und besteht aus <strong>6 Tabellen</strong>. Nur das
-      <a href="backend.html">Backend</a> spricht mit ihr.</p>
+    <div class="goals">
+      <h4>🎯 Nach dieser Seite kannst du erklären:</h4>
+      <ul>
+        <li>was eine relationale Datenbank ist und warum wir MySQL nutzen,</li>
+        <li>was Primär- und Fremdschlüssel sind (mit konkretem Beispiel),</li>
+        <li>alle 6 Tabellen von StudyWork mit jedem Feld,</li>
+        <li>das UML-/ER-Modell in Worten – alle Beziehungen mit Multiplizitäten,</li>
+        <li>wie SQL, Prepared Statements und der Verbindungs-Pool funktionieren,</li>
+        <li>wie man selbst in die Datenbank hineinschaut (GUI &amp; Kommandozeile).</li>
+      </ul>
     </div>
 
-    <h2>Was ist eine (relationale) Datenbank?</h2>
+    <h2>1. Was ist eine (relationale) Datenbank – und warum brauchen wir sie?</h2>
     <div class="box analogy">
-      <p style="margin:0;">Stell dir eine <strong>Sammlung von Excel-Tabellen</strong> vor. Jede Tabelle
-      speichert eine Sorte Dinge (eine Tabelle für Unternehmen, eine für Jobs, …). Jede <strong>Zeile</strong>
-      ist ein Eintrag (z. B. ein bestimmter Job), jede <strong>Spalte</strong> ein Merkmal (z. B. der Titel).
-      Das Besondere: Die Tabellen sind <strong>miteinander verbunden</strong> – ein Job „weiß", zu welchem
-      Unternehmen er gehört.</p>
+      <p style="margin:0;"><strong>Analogie:</strong> Stell dir eine Mappe mit mehreren
+      <strong>Excel-Tabellen</strong> vor. Jede Tabelle sammelt eine Sorte Dinge (eine für Unternehmen, eine
+      für Jobs, …). Jede <strong>Zeile</strong> ist ein Eintrag (ein bestimmter Job), jede
+      <strong>Spalte</strong> ein Merkmal (Titel, Ort, Gehalt). Das Besondere gegenüber Excel: Die Tabellen
+      sind über Nummern <strong>miteinander verknüpft</strong> („relational"), und ein Datenbanksystem
+      wacht darüber, dass die Verknüpfungen stimmen – auch bei tausenden Zugriffen gleichzeitig.</p>
     </div>
+    <p><strong>Warum nicht einfach Variablen oder eine Textdatei?</strong></p>
     <ul>
-      <li><strong>Warum überhaupt eine Datenbank?</strong> Weil Daten <strong>dauerhaft</strong> bleiben
-        müssen – auch wenn man den Server neu startet oder den Computer ausschaltet.</li>
-      <li><strong>Warum MySQL?</strong> Es ist kostenlos, sehr verbreitet, zuverlässig und von der
-        Aufgabenstellung als Datenbank gewünscht.</li>
-      <li><strong>Zeichensatz <code>utf8mb4</code>:</strong> damit Umlaute (ä, ö, ü, ß) korrekt gespeichert
-        werden.</li>
+      <li>Variablen im Server leben nur im Arbeitsspeicher – <strong>nach einem Neustart ist alles weg</strong>.
+        Eine Datenbank schreibt auf die Festplatte: Bewerbungen bleiben erhalten.</li>
+      <li>Eine Datenbank kann <strong>gezielt suchen</strong> („alle aktiven Werkstudenten-Jobs in Berlin")
+        ohne alles einzulesen, sie verhindert <strong>Widersprüche</strong> (z. B. eine Bewerbung auf einen
+        Job, den es nicht gibt) und verkraftet <strong>gleichzeitige Zugriffe</strong> mehrerer Nutzer.</li>
     </ul>
+    <p><strong>Warum MySQL?</strong> Es ist kostenlos, extrem verbreitet (viel Doku, viele Tools), zuverlässig
+      – und von der Aufgabenstellung vorgesehen. Unsere Datenbank heißt <code>studywork</code> und ist auf
+      <code>utf8mb4</code> eingestellt, damit Umlaute (ä/ö/ü/ß) und Sonderzeichen korrekt gespeichert werden.</p>
 
-    <h2>Zwei wichtige Begriffe: Primärschlüssel &amp; Fremdschlüssel</h2>
-    <ul>
-      <li><strong>Primärschlüssel (PK):</strong> eine eindeutige Nummer, die jede Zeile unverwechselbar
-        macht. Bei uns heißt sie immer <code>id</code> und wird automatisch hochgezählt (1, 2, 3, …).</li>
-      <li><strong>Fremdschlüssel (FK):</strong> eine Spalte, die auf die <code>id</code> einer anderen
-        Tabelle zeigt und so die <strong>Verbindung</strong> herstellt. Beispiel: <code>jobs.company_id</code>
-        zeigt auf <code>companies.id</code> – so „gehört" jeder Job zu einem Unternehmen.</li>
-    </ul>
-
-    <h2>Die 6 Tabellen im Überblick</h2>
+    <h2>2. Wie spricht man mit einer Datenbank? SQL in 2 Minuten</h2>
+    <p>Die Sprache heißt <strong>SQL</strong>. Vier Befehle decken fast alles ab – und sie spiegeln genau die
+      REST-Methoden des <a href="backend.html">Backends</a>:</p>
     <table>
-      <tr><th>Tabelle</th><th>Speichert</th></tr>
-      <tr><td><code>companies</code></td><td>Unternehmen (mit Login)</td></tr>
-      <tr><td><code>students</code></td><td>Studenten (mit Login, Profil, Lebenslauf)</td></tr>
-      <tr><td><code>jobs</code></td><td>Stellenanzeigen</td></tr>
-      <tr><td><code>applications</code></td><td>Bewerbungen auf Stellen</td></tr>
-      <tr><td><code>job_reports</code></td><td>Meldungen zu Anzeigen (z. B. Spam)</td></tr>
-      <tr><td><code>job_alerts</code></td><td>gespeicherte Suchen eines Studenten</td></tr>
+      <tr><th>SQL</th><th>Bedeutung</th><th>Beispiel (vereinfacht)</th><th>≙ REST</th></tr>
+      <tr><td><code>SELECT</code></td><td>lesen</td><td><code>SELECT * FROM jobs WHERE location = 'Berlin'</code></td><td>GET</td></tr>
+      <tr><td><code>INSERT</code></td><td>neu anlegen</td><td><code>INSERT INTO applications (…) VALUES (…)</code></td><td>POST</td></tr>
+      <tr><td><code>UPDATE</code></td><td>ändern</td><td><code>UPDATE jobs SET status = 'pausiert' WHERE id = 5</code></td><td>PUT/PATCH</td></tr>
+      <tr><td><code>DELETE</code></td><td>löschen</td><td><code>DELETE FROM jobs WHERE id = 5</code></td><td>DELETE</td></tr>
+    </table>
+    <p>Lies <code>SELECT * FROM jobs WHERE …</code> einfach als Satz: „Wähle alle Spalten aus der Tabelle
+      <em>jobs</em>, aber nur die Zeilen, bei denen …". Genau solche Sätze formuliert unser Backend – der
+      Browser sieht davon nie etwas.</p>
+
+    <h2>3. Primärschlüssel &amp; Fremdschlüssel – der Kniff hinter „relational"</h2>
+    <ul>
+      <li><strong>Primärschlüssel (PK):</strong> Jede Zeile bekommt eine eindeutige Nummer, bei uns immer die
+        Spalte <code>id</code>, automatisch hochgezählt (1, 2, 3 …). Wie eine Matrikelnummer: unverwechselbar,
+        auch wenn zwei Einträge sonst gleich aussehen.</li>
+      <li><strong>Fremdschlüssel (FK):</strong> Eine Spalte, die die <code>id</code> einer <em>anderen</em>
+        Tabelle enthält – der „Verweis-Pfeil" zwischen Tabellen.</li>
+    </ul>
+    <p><strong>Konkret:</strong> So hängen ein Unternehmen und seine Jobs zusammen:</p>
+    <pre><code>companies                          jobs
+┌────┬────────────────┐            ┌────┬────────────┬──────────────────────────────┐
+│ id │ name           │            │ id │ company_id │ title                        │
+├────┼────────────────┤            ├────┼────────────┼──────────────────────────────┤
+│ 1  │ TechNova GmbH  │ ◄────┐     │ 1  │     1      │ Werkstudent Backend          │
+│ 2  │ GreenLeaf …    │      └──── │ 2  │     1      │ Praktikum Data Science       │
+└────┴────────────────┘            │ 4  │     2      │ Werkstudent Marketing        │
+                                   └────┴────────────┴──────────────────────────────┘</code></pre>
+    <p>Job 1 und Job 2 tragen <code>company_id = 1</code> → beide gehören TechNova. Will die App „alle Jobs
+      von TechNova", fragt sie: <code>SELECT * FROM jobs WHERE company_id = 1</code>. Die Datenbank
+      <em>erzwingt</em> außerdem, dass dort nur Nummern stehen, die es in <code>companies</code> wirklich
+      gibt – ein Job ohne existierendes Unternehmen ist unmöglich („referenzielle Integrität").</p>
+
+    <h2>4. Unsere 6 Tabellen im Überblick</h2>
+    <table>
+      <tr><th>Tabelle</th><th>Speichert</th><th>Zeigt per FK auf</th></tr>
+      <tr><td><code>companies</code></td><td>Unternehmen (mit Login)</td><td>–</td></tr>
+      <tr><td><code>students</code></td><td>Studenten (Login, Profil, Lebenslauf)</td><td>–</td></tr>
+      <tr><td><code>jobs</code></td><td>Stellenanzeigen</td><td>→ <code>companies</code></td></tr>
+      <tr><td><code>applications</code></td><td>Bewerbungen</td><td>→ <code>jobs</code></td></tr>
+      <tr><td><code>job_reports</code></td><td>Meldungen zu Anzeigen (Spam/Fake)</td><td>→ <code>jobs</code></td></tr>
+      <tr><td><code>job_alerts</code></td><td>gespeicherte Suchen</td><td>→ <code>students</code></td></tr>
     </table>
 
-    <h2>Jede Tabelle im Detail (alle Felder)</h2>
+    <h3>Kurz zu den Datentypen (damit die Detail-Tabellen lesbar sind)</h3>
+    <table>
+      <tr><th>Typ</th><th>Bedeutung</th></tr>
+      <tr><td><code>INT</code></td><td>Ganzzahl (z. B. eine ID)</td></tr>
+      <tr><td><code>VARCHAR(100)</code></td><td>Text mit Maximallänge (hier: 100 Zeichen)</td></tr>
+      <tr><td><code>TEXT</code> / <code>MEDIUMTEXT</code></td><td>langer / sehr langer Text ohne enge Grenze</td></tr>
+      <tr><td><code>ENUM(…)</code></td><td>nur einer von fest vorgegebenen Werten ist erlaubt – die Datenbank selbst lehnt alles andere ab (z. B. kann ein Job-Status nie „xyz" sein)</td></tr>
+      <tr><td><code>TIMESTAMP</code></td><td>Zeitpunkt; bei uns oft automatisch gesetzt (angelegt/geändert am)</td></tr>
+      <tr><td><code>NOT NULL</code> / <code>UNIQUE</code></td><td>Pflichtfeld / Wert darf nur einmal vorkommen (z. B. E-Mail)</td></tr>
+    </table>
+
+    <h2>5. Jede Tabelle im Detail (alle Felder)</h2>
 
     <h3>companies – Unternehmen</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>name</code></td><td>Text (max. 100)</td><td>Firmenname (Pflicht)</td></tr>
-      <tr><td><code>email</code></td><td>Text (max. 100) · eindeutig</td><td>Login-/Kontakt-E-Mail</td></tr>
-      <tr><td><code>password_hash</code></td><td>Text</td><td>verschlüsseltes Passwort (nie Klartext)</td></tr>
-      <tr><td><code>description</code></td><td>langer Text</td><td>Firmenbeschreibung</td></tr>
-      <tr><td><code>website</code></td><td>Text</td><td>Web-Adresse</td></tr>
-      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>name</code></td><td>VARCHAR(100) · Pflicht</td><td>Firmenname</td></tr>
+      <tr><td><code>email</code></td><td>VARCHAR(100) · Pflicht · einmalig</td><td>Login-/Kontakt-E-Mail</td></tr>
+      <tr><td><code>password_hash</code></td><td>VARCHAR(255)</td><td>verschlüsseltes Passwort (nie Klartext; Format siehe <a href="backend.html">Backend</a>)</td></tr>
+      <tr><td><code>description</code></td><td>TEXT</td><td>Firmenbeschreibung (auf der Job-Detailseite sichtbar)</td></tr>
+      <tr><td><code>website</code></td><td>VARCHAR(255)</td><td>Web-Adresse</td></tr>
+      <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>wann angelegt (automatisch)</td></tr>
     </table>
 
     <h3>students – Studenten</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>name</code></td><td>Text</td><td>Name (Pflicht)</td></tr>
-      <tr><td><code>email</code></td><td>Text · eindeutig</td><td>Login-E-Mail</td></tr>
-      <tr><td><code>password_hash</code></td><td>Text</td><td>verschlüsseltes Passwort</td></tr>
-      <tr><td><code>headline</code></td><td>Text</td><td>kurze Selbstbeschreibung („Über mich"-Titel)</td></tr>
-      <tr><td><code>bio</code></td><td>langer Text</td><td>ausführliches „Über mich"</td></tr>
-      <tr><td><code>skills</code></td><td>Text</td><td>Fähigkeiten (kommagetrennt)</td></tr>
-      <tr><td><code>study_program</code></td><td>Text</td><td>Studiengang</td></tr>
-      <tr><td><code>university</code></td><td>Text</td><td>Hochschule</td></tr>
-      <tr><td><code>location</code></td><td>Text</td><td>Ort</td></tr>
-      <tr><td><code>website</code></td><td>Text</td><td>Portfolio-/Web-Link</td></tr>
-      <tr><td><code>profile_visibility</code></td><td>Auswahl: <code>applied</code> / <code>all</code></td><td>wer das Profil sehen darf</td></tr>
-      <tr><td><code>cv_filename</code></td><td>Text</td><td>Dateiname des Lebenslaufs</td></tr>
-      <tr><td><code>cv_data</code></td><td>sehr langer Text</td><td>der Lebenslauf (PDF) selbst, als Text kodiert</td></tr>
-      <tr><td><code>cv_uploaded_at</code></td><td>Zeitstempel</td><td>wann hochgeladen</td></tr>
-      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>name</code></td><td>VARCHAR(100) · Pflicht</td><td>Name</td></tr>
+      <tr><td><code>email</code></td><td>VARCHAR(100) · Pflicht · einmalig</td><td>Login-E-Mail (verknüpft „weich" mit Bewerbungen, s. u.)</td></tr>
+      <tr><td><code>password_hash</code></td><td>VARCHAR(255) · Pflicht</td><td>verschlüsseltes Passwort</td></tr>
+      <tr><td><code>headline</code></td><td>VARCHAR(150)</td><td>Kurzbeschreibung („Informatikstudentin im 4. Semester …")</td></tr>
+      <tr><td><code>bio</code></td><td>TEXT</td><td>ausführliches „Über mich"</td></tr>
+      <tr><td><code>skills</code></td><td>VARCHAR(500)</td><td>Fähigkeiten, kommagetrennt (werden im Profil als kleine Plaketten angezeigt)</td></tr>
+      <tr><td><code>study_program</code> / <code>university</code></td><td>VARCHAR(150)</td><td>Studiengang / Hochschule</td></tr>
+      <tr><td><code>location</code> / <code>website</code></td><td>VARCHAR</td><td>Ort / Portfolio-Link</td></tr>
+      <tr><td><code>profile_visibility</code></td><td>ENUM: <code>applied</code> | <code>all</code></td><td>Wer darf das Profil sehen? Nur Unternehmen, bei denen man sich beworben hat – oder alle. Der Student entscheidet.</td></tr>
+      <tr><td><code>cv_filename</code></td><td>VARCHAR(255)</td><td>Dateiname des Lebenslaufs</td></tr>
+      <tr><td><code>cv_data</code></td><td>MEDIUMTEXT</td><td>die PDF selbst, als Text kodiert („base64") – eine bewusste Demo-Lösung: kein extra Datei-Server nötig, für kleine PDFs (≤ 3 MB) völlig ausreichend</td></tr>
+      <tr><td><code>cv_uploaded_at</code></td><td>TIMESTAMP</td><td>wann hochgeladen</td></tr>
+      <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>wann angelegt</td></tr>
     </table>
 
     <h3>jobs – Stellenanzeigen</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>company_id</code></td><td>Ganzzahl · <strong>FK → companies.id</strong></td><td>zu welchem Unternehmen die Anzeige gehört</td></tr>
-      <tr><td><code>title</code></td><td>Text</td><td>Jobtitel (Pflicht)</td></tr>
-      <tr><td><code>description</code></td><td>langer Text</td><td>Beschreibung (Pflicht)</td></tr>
-      <tr><td><code>location</code></td><td>Text</td><td>Ort (z. B. „Berlin", „Remote")</td></tr>
-      <tr><td><code>job_type</code></td><td>Auswahl: Teilzeit/Vollzeit/Werkstudent/Praktikum/Minijob</td><td>Anstellungsart</td></tr>
-      <tr><td><code>salary_range</code></td><td>Text</td><td>Vergütung (frei, z. B. „16–20 €/h")</td></tr>
-      <tr><td><code>status</code></td><td>Auswahl: aktiv/pausiert/geschlossen</td><td>Sichtbarkeit der Anzeige</td></tr>
-      <tr><td><code>created_at</code> / <code>updated_at</code></td><td>Zeitstempel</td><td>angelegt / zuletzt geändert</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>company_id</code></td><td>INT · Pflicht · <strong>FK → companies.id</strong></td><td>welchem Unternehmen die Anzeige gehört</td></tr>
+      <tr><td><code>title</code></td><td>VARCHAR(150) · Pflicht</td><td>Jobtitel</td></tr>
+      <tr><td><code>description</code></td><td>TEXT · Pflicht</td><td>Stellenbeschreibung</td></tr>
+      <tr><td><code>location</code></td><td>VARCHAR(100)</td><td>Ort („Berlin", „Remote" …)</td></tr>
+      <tr><td><code>job_type</code></td><td>ENUM: Teilzeit | Vollzeit | Werkstudent | Praktikum | Minijob</td><td>Anstellungsart (danach lässt sich filtern)</td></tr>
+      <tr><td><code>salary_range</code></td><td>VARCHAR(50)</td><td>Vergütung als freier Text („16–20 €/h")</td></tr>
+      <tr><td><code>status</code></td><td>ENUM: aktiv | pausiert | geschlossen</td><td>Studenten sehen nur <em>aktive</em> Stellen; das Unternehmen schaltet um</td></tr>
+      <tr><td><code>created_at</code> / <code>updated_at</code></td><td>TIMESTAMP</td><td>angelegt / zuletzt geändert (beides automatisch)</td></tr>
     </table>
 
     <h3>applications – Bewerbungen</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>job_id</code></td><td>Ganzzahl · <strong>FK → jobs.id</strong></td><td>auf welche Stelle</td></tr>
-      <tr><td><code>student_name</code></td><td>Text</td><td>Name des Bewerbers</td></tr>
-      <tr><td><code>student_email</code></td><td>Text</td><td>E-Mail des Bewerbers</td></tr>
-      <tr><td><code>cover_letter</code></td><td>langer Text</td><td>Anschreiben (optional)</td></tr>
-      <tr><td><code>status</code></td><td>Auswahl: offen/gesehen/angenommen/abgelehnt</td><td>Bearbeitungsstand (setzt das Unternehmen)</td></tr>
-      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann beworben</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>job_id</code></td><td>INT · Pflicht · <strong>FK → jobs.id</strong></td><td>auf welche Stelle sich die Bewerbung bezieht</td></tr>
+      <tr><td><code>student_name</code></td><td>VARCHAR(100) · Pflicht</td><td>Name des Bewerbers (als Text!)</td></tr>
+      <tr><td><code>student_email</code></td><td>VARCHAR(100) · Pflicht</td><td>E-Mail des Bewerbers (als Text!)</td></tr>
+      <tr><td><code>cover_letter</code></td><td>TEXT</td><td>Anschreiben (optional)</td></tr>
+      <tr><td><code>status</code></td><td>ENUM: offen | gesehen | angenommen | abgelehnt</td><td>Bearbeitungsstand – startet immer bei „offen", nur das Unternehmen ändert ihn</td></tr>
+      <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>wann beworben</td></tr>
     </table>
-    <div class="box info">
-      <p style="margin:0;"><strong>Wichtiges Detail:</strong> Eine Bewerbung speichert Name und E-Mail nur
-      als Text und hat <em>keinen</em> Fremdschlüssel auf <code>students</code>. Grund: Man kann sich auch
-      <strong>ohne Konto</strong> bewerben. Die Verbindung zu einem Studenten-Konto entsteht „weich" über die
-      gleiche E-Mail-Adresse (siehe UML unten).</p>
+    <div class="box key">
+      <h4>Design-Entscheidung: warum kein FK auf <code>students</code>?</h4>
+      <p style="margin-bottom:0;">Man kann sich bei StudyWork <strong>auch ohne Konto</strong> bewerben –
+      das senkt die Hürde. Deshalb speichert eine Bewerbung Name und E-Mail als schlichten Text, statt fest
+      auf einen Studenten-Eintrag zu zeigen. Hat der Bewerber <em>doch</em> ein Konto, erkennt das Backend
+      das über die <strong>gleiche E-Mail-Adresse</strong> und kann z. B. dem Unternehmen den Profil-Link
+      anzeigen oder dem Studenten „Meine Bewerbungen" auflisten. Eine bewusst „weiche" Verknüpfung –
+      Flexibilität gegen etwas Strenge getauscht.</p>
     </div>
 
     <h3>job_reports – Meldungen</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>job_id</code></td><td>Ganzzahl · <strong>FK → jobs.id</strong></td><td>welche Anzeige gemeldet wurde</td></tr>
-      <tr><td><code>reason</code></td><td>Text</td><td>Grund (fake, spam, …)</td></tr>
-      <tr><td><code>message</code></td><td>Text</td><td>optionale Nachricht</td></tr>
-      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann gemeldet</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>job_id</code></td><td>INT · Pflicht · <strong>FK → jobs.id</strong></td><td>welche Anzeige gemeldet wurde</td></tr>
+      <tr><td><code>reason</code></td><td>VARCHAR(50) · Pflicht</td><td>Grund (fake, spam, abgelaufen, …)</td></tr>
+      <tr><td><code>message</code></td><td>VARCHAR(500)</td><td>optionale Nachricht des Meldenden</td></tr>
+      <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>wann gemeldet</td></tr>
     </table>
 
     <h3>job_alerts – gespeicherte Suchen</h3>
     <table>
       <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
-      <tr><td><code>id</code></td><td>Ganzzahl · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
-      <tr><td><code>student_id</code></td><td>Ganzzahl · <strong>FK → students.id</strong></td><td>wem der Alert gehört</td></tr>
-      <tr><td><code>title / location / job_type</code></td><td>Text</td><td>gespeicherte Suchkriterien (leer = egal)</td></tr>
-      <tr><td><code>created_at</code></td><td>Zeitstempel</td><td>wann angelegt</td></tr>
+      <tr><td><code>id</code></td><td>INT · <strong>PK</strong></td><td>eindeutige Nummer</td></tr>
+      <tr><td><code>student_id</code></td><td>INT · Pflicht · <strong>FK → students.id</strong></td><td>wem der Alert gehört</td></tr>
+      <tr><td><code>title</code> / <code>location</code> / <code>job_type</code></td><td>VARCHAR</td><td>die gespeicherten Suchkriterien (leer = „egal"). Ein Alert ist also eine konservierte Suche; „passend" ist jede aktive Stelle, die die Kriterien erfüllt.</td></tr>
+      <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>wann angelegt</td></tr>
     </table>
 
-    <h2>Das UML-/ER-Modell in Worten</h2>
-    <p>Ein UML-/ER-Diagramm zeigt die Tabellen als <strong>Kästen (Entitäten)</strong> mit ihren Feldern und
-      verbindet sie mit <strong>Linien (Beziehungen)</strong>. An den Linienenden stehen
-      <strong>Multiplizitäten</strong> – sie sagen, „wie viele" auf jeder Seite zusammengehören.</p>
+    <h2>6. Das UML-/ER-Modell – vollständig in Worten</h2>
+    <p>Ein UML-/ER-Diagramm ist die Landkarte einer Datenbank: Jede Tabelle ist ein <strong>Kasten
+      (Entität)</strong> mit ihren Feldern, Beziehungen sind <strong>Linien</strong> zwischen den Kästen. An
+      jedem Linienende steht eine <strong>Multiplizität</strong> – sie beantwortet: „Mit <em>wie vielen</em>
+      Einträgen der anderen Seite kann dieser Eintrag verbunden sein?"</p>
 
     <div class="box key">
-      <h4>Lesehilfe für Multiplizitäten</h4>
+      <h4>Lesehilfe: Multiplizitäten</h4>
       <ul style="margin-bottom:0;">
-        <li><code>1</code> = genau eins</li>
-        <li><code>0..*</code> = beliebig viele (auch keine) – „*" heißt „viele"</li>
+        <li><code>1</code> = genau eins (Pflicht)</li>
         <li><code>0..1</code> = keins oder eins</li>
+        <li><code>0..*</code> = beliebig viele, auch keins („*" = viele)</li>
+        <li>In der verbreiteten „Krähenfuß"-Notation zeichnet man das „viele"-Ende als kleine Gabel; das
+          „viele"-Ende ist immer die Tabelle, die den <strong>Fremdschlüssel trägt</strong>.</li>
       </ul>
     </div>
 
-    <h3>Die Entitäten (Kästen mit Feldern)</h3>
+    <h3>Die Entitäten (Kästen mit allen Feldern)</h3>
     <ul>
       <li><strong>COMPANY</strong> ( <u>id</u>, name, email, password_hash, description, website, created_at )</li>
       <li><strong>STUDENT</strong> ( <u>id</u>, name, email, password_hash, headline, bio, skills,
         study_program, university, location, website, profile_visibility, cv_filename, cv_data,
         cv_uploaded_at, created_at )</li>
-      <li><strong>JOB</strong> ( <u>id</u>, <em>company_id&nbsp;(FK)</em>, title, description, location,
-        job_type, salary_range, status, created_at, updated_at )</li>
-      <li><strong>APPLICATION</strong> ( <u>id</u>, <em>job_id&nbsp;(FK)</em>, student_name, student_email,
+      <li><strong>JOB</strong> ( <u>id</u>, <em>company_id (FK)</em>, title, description, location, job_type,
+        salary_range, status, created_at, updated_at )</li>
+      <li><strong>APPLICATION</strong> ( <u>id</u>, <em>job_id (FK)</em>, student_name, student_email,
         cover_letter, status, created_at )</li>
-      <li><strong>JOB_REPORT</strong> ( <u>id</u>, <em>job_id&nbsp;(FK)</em>, reason, message, created_at )</li>
-      <li><strong>JOB_ALERT</strong> ( <u>id</u>, <em>student_id&nbsp;(FK)</em>, title, location, job_type,
-        created_at )</li>
+      <li><strong>JOB_REPORT</strong> ( <u>id</u>, <em>job_id (FK)</em>, reason, message, created_at )</li>
+      <li><strong>JOB_ALERT</strong> ( <u>id</u>, <em>student_id (FK)</em>, title, location, job_type, created_at )</li>
     </ul>
-    <p style="color:var(--muted);font-size:0.9rem;">(<u>Unterstrichen</u> = Primärschlüssel, <em>kursiv&nbsp;(FK)</em> = Fremdschlüssel.)</p>
+    <p style="color:var(--muted);font-size:0.9rem;">(<u>Unterstrichen</u> = Primärschlüssel;
+      <em>kursiv (FK)</em> = Fremdschlüssel.)</p>
 
-    <h3>Die Beziehungen (Linien mit Richtung &amp; Multiplizität)</h3>
+    <h3>Die Beziehungen – einzeln erklärt</h3>
     <table>
-      <tr><th>Beziehung</th><th>Multiplizität</th><th>Erklärung</th></tr>
+      <tr><th>Beziehung</th><th>Multiplizität</th><th>So liest man sie</th></tr>
       <tr>
-        <td><strong>COMPANY → JOB</strong><br>„hat / schreibt aus"</td>
-        <td>1 : 0..*</td>
-        <td>Ein Unternehmen hat <strong>0 bis viele</strong> Stellenanzeigen; jede Anzeige gehört zu
-          <strong>genau einem</strong> Unternehmen. Umgesetzt über den Fremdschlüssel
-          <code>jobs.company_id → companies.id</code>. In Krähenfuß-Notation: „viele"-Symbol am JOB-Ende,
-          einfacher Strich am COMPANY-Ende. Pflichtbeziehung (jeder Job <em>muss</em> ein Unternehmen haben).</td>
+        <td><strong>COMPANY — JOB</strong><br>„schreibt aus"</td>
+        <td>COMPANY <code>1</code> : <code>0..*</code> JOB</td>
+        <td>Ein Unternehmen besitzt <strong>null bis viele</strong> Stellenanzeigen (auch ein Unternehmen
+          ohne Anzeige ist gültig). Jede Anzeige gehört zu <strong>genau einem</strong> Unternehmen – nie zu
+          keinem, nie zu zweien. Technisch: <code>jobs.company_id → companies.id</code>, Pflichtfeld
+          (<code>NOT NULL</code>). Im Diagramm: Krähenfuß am JOB-Ende, Strich (1) am COMPANY-Ende.</td>
       </tr>
       <tr>
-        <td><strong>JOB → APPLICATION</strong><br>„erhält"</td>
-        <td>1 : 0..*</td>
-        <td>Ein Job hat <strong>0 bis viele</strong> Bewerbungen; jede Bewerbung gehört zu
-          <strong>genau einem</strong> Job. Fremdschlüssel <code>applications.job_id → jobs.id</code>.</td>
+        <td><strong>JOB — APPLICATION</strong><br>„erhält"</td>
+        <td>JOB <code>1</code> : <code>0..*</code> APPLICATION</td>
+        <td>Ein Job kann <strong>null bis viele</strong> Bewerbungen erhalten; jede Bewerbung bezieht sich
+          auf <strong>genau einen</strong> Job. Technisch: <code>applications.job_id → jobs.id</code>.</td>
       </tr>
       <tr>
-        <td><strong>JOB → JOB_REPORT</strong><br>„wird gemeldet als"</td>
-        <td>1 : 0..*</td>
-        <td>Ein Job kann <strong>0 bis viele</strong> Meldungen haben; jede Meldung betrifft
-          <strong>genau einen</strong> Job. Fremdschlüssel <code>job_reports.job_id → jobs.id</code>.</td>
+        <td><strong>JOB — JOB_REPORT</strong><br>„wird gemeldet"</td>
+        <td>JOB <code>1</code> : <code>0..*</code> JOB_REPORT</td>
+        <td>Ein Job kann <strong>null bis viele</strong> Meldungen haben; jede Meldung betrifft
+          <strong>genau einen</strong> Job. Technisch: <code>job_reports.job_id → jobs.id</code>.</td>
       </tr>
       <tr>
-        <td><strong>STUDENT → JOB_ALERT</strong><br>„speichert"</td>
-        <td>1 : 0..*</td>
-        <td>Ein Student hat <strong>0 bis viele</strong> gespeicherte Such-Alerts; jeder Alert gehört zu
-          <strong>genau einem</strong> Studenten. Fremdschlüssel <code>job_alerts.student_id → students.id</code>.</td>
+        <td><strong>STUDENT — JOB_ALERT</strong><br>„speichert"</td>
+        <td>STUDENT <code>1</code> : <code>0..*</code> JOB_ALERT</td>
+        <td>Ein Student kann <strong>null bis viele</strong> Such-Alerts speichern; jeder Alert gehört
+          <strong>genau einem</strong> Studenten. Technisch: <code>job_alerts.student_id → students.id</code>.</td>
       </tr>
       <tr>
-        <td><strong>STUDENT ⇠ APPLICATION</strong><br>(weiche Beziehung, ohne Fremdschlüssel)</td>
-        <td>0..1 : 0..*</td>
-        <td>Eine Bewerbung <em>kann</em> zu einem Studenten-Konto gehören – muss aber nicht (Bewerbung ohne
-          Konto ist erlaubt). Deshalb gibt es hier <strong>keinen</strong> Fremdschlüssel; verbunden wird
-          über die <strong>gleiche E-Mail-Adresse</strong> (<code>applications.student_email = students.email</code>).
-          Im Diagramm zeichnet man das als <strong>gestrichelte</strong> Linie. Multiplizität: Ein Student
-          hat 0..* Bewerbungen (alle mit seiner E-Mail); eine Bewerbung gehört zu 0 oder 1 Student.</td>
+        <td><strong>STUDENT ⇢ APPLICATION</strong><br>„hat eingereicht" (weich)</td>
+        <td>STUDENT <code>0..1</code> : <code>0..*</code> APPLICATION</td>
+        <td>Die Besonderheit: Eine Bewerbung <em>kann</em> zu einem Studenten-Konto gehören, <em>muss</em>
+          aber nicht (Gast-Bewerbung). Es gibt <strong>keinen Fremdschlüssel</strong>; die Zuordnung läuft
+          über die Übereinstimmung <code>applications.student_email = students.email</code>. Im Diagramm
+          zeichnet man so eine logische, nicht erzwungene Beziehung als <strong>gestrichelte Linie</strong>.
+          Lesart: Ein Student hat null bis viele Bewerbungen; eine Bewerbung gehört zu keinem oder genau
+          einem Studenten.</td>
       </tr>
     </table>
 
-    <h3>Kurz als „Text-Diagramm"</h3>
-    <pre><code>COMPANY  1 ───&lt; 0..*  JOB  1 ───&lt; 0..*  APPLICATION
-                      JOB  1 ───&lt; 0..*  JOB_REPORT
-STUDENT  1 ───&lt; 0..*  JOB_ALERT
-STUDENT  0..1 ┄┄&lt; 0..* APPLICATION   (weich, über die E-Mail-Adresse)</code></pre>
-    <p>Das Zeichen <code>&lt;</code> ist der „Krähenfuß" und steht für das „viele"-Ende.</p>
+    <h3>Alles auf einen Blick (Text-Diagramm)</h3>
+    <pre><code>COMPANY  1 ───&lt;  0..*  JOB
+JOB      1 ───&lt;  0..*  APPLICATION
+JOB      1 ───&lt;  0..*  JOB_REPORT
+STUDENT  1 ───&lt;  0..*  JOB_ALERT
+STUDENT  0..1 ┄┄&lt; 0..* APPLICATION      (weich: über gleiche E-Mail, kein FK)
 
-    <h2>Was passiert beim Löschen? (ON DELETE CASCADE)</h2>
-    <p>Alle Fremdschlüssel haben die Regel <strong>„CASCADE"</strong>: Wird ein „Eltern"-Eintrag gelöscht,
-      verschwinden automatisch die abhängigen „Kinder".</p>
-    <ul>
-      <li>Löscht ein Unternehmen sein Konto → alle seine <strong>Jobs</strong> werden gelöscht → dadurch auch
-        deren <strong>Bewerbungen</strong> und <strong>Meldungen</strong> (Kettenreaktion).</li>
-      <li>Löscht ein Student sein Konto → seine <strong>Job-Alerts</strong> werden gelöscht (seine Bewerbungen
-        entfernt das Backend zusätzlich anhand der E-Mail).</li>
-    </ul>
+Legende:  ───  feste Beziehung (Fremdschlüssel)     ┄┄  logische Beziehung
+          &lt;    „Krähenfuß" = das „viele"-Ende</code></pre>
+    <p>Damit ist das Modell auch sprachlich komplett beschreibbar – z. B.: <em>„Ein Unternehmen hat beliebig
+      viele Jobs; jeder Job gehört genau einem Unternehmen. Ein Job sammelt beliebig viele Bewerbungen und
+      Meldungen. Ein Student besitzt beliebig viele Job-Alerts. Bewerbungen sind nur lose – über die
+      E-Mail – mit Studentenkonten verknüpft, weil Bewerben auch ohne Konto möglich ist."</em></p>
+
+    <h2>7. Löschen mit Kettenreaktion: ON DELETE CASCADE</h2>
+    <p>Alle vier Fremdschlüssel tragen die Regel <strong>ON DELETE CASCADE</strong>: Wird der „Eltern"-Eintrag
+      gelöscht, räumt die Datenbank die abhängigen „Kinder" automatisch mit weg.</p>
+    <pre><code>Unternehmen TechNova löscht sein Konto
+   └─→ alle Jobs von TechNova werden gelöscht          (FK jobs → companies)
+         ├─→ alle Bewerbungen auf diese Jobs            (FK applications → jobs)
+         └─→ alle Meldungen zu diesen Jobs              (FK job_reports → jobs)</code></pre>
     <div class="box why">
       <h4>Warum CASCADE?</h4>
-      <p style="margin-bottom:0;">Damit keine „verwaisten" Daten übrig bleiben – z. B. eine Bewerbung zu
-      einem Job, den es gar nicht mehr gibt. Die Datenbank hält sich so immer selbst sauber.</p>
+      <p style="margin-bottom:0;">Ohne die Regel blieben „Datenleichen" zurück: Bewerbungen auf Jobs, die es
+      nicht mehr gibt. Solche verwaisten Einträge führen zu Fehlern und verletzen den Datenschutz-Gedanken
+      („Konto gelöscht = zugehörige Daten weg"). Eine Ausnahme passt ins Bild: Löscht ein <em>Student</em>
+      sein Konto, entfernt das <a href="backend.html">Backend</a> seine Bewerbungen selbst anhand der
+      E-Mail – automatisch geht das nicht, weil hier ja bewusst kein Fremdschlüssel existiert.</p>
     </div>
 
-    <h2>Wie das Backend an die Daten kommt (Anbindung)</h2>
-    <ul>
-      <li>Die Verbindung steht in <code>backend/db.js</code>. Wir nutzen ein „Verbindungs-Bündel"
-        (Connection Pool): Statt für jede Anfrage neu zur Datenbank zu verbinden (langsam), werden mehrere
-        Verbindungen bereitgehalten und wiederverwendet.</li>
-      <li>Die <strong>Zugangsdaten</strong> (Adresse, Benutzer, Passwort, DB-Name) stehen in einer
-        <code>.env</code>-Datei – nie im Code.</li>
-      <li>Alle Abfragen laufen als <strong>Prepared Statements</strong>: Werte werden sicher als Parameter
-        übergeben, nicht in den Befehl „geklebt". Das schützt vor <strong>SQL-Injection</strong> (dem
-        Versuch, die Datenbank über Eingabefelder auszutricksen).</li>
-    </ul>
-    <pre><code>// vereinfachtes Beispiel (im Backend)
-const [zeilen] = await pool.execute(
-  'SELECT * FROM jobs WHERE job_type = ? AND status = ?',
-  ['Werkstudent', 'aktiv']   // Werte sicher als Parameter
-);</code></pre>
+    <h2>8. Indizes – das Stichwortverzeichnis der Datenbank</h2>
+    <p>Ein <strong>Index</strong> ist wie das Stichwortverzeichnis eines Buchs: Statt alle Seiten zu
+      durchblättern, springt man direkt zur Fundstelle. Wir haben Indizes auf den Spalten angelegt, nach
+      denen ständig gefiltert wird: <code>jobs.company_id</code>, <code>jobs.job_type</code>,
+      <code>jobs.status</code>, <code>applications.job_id</code>, <code>job_reports.job_id</code>,
+      <code>job_alerts.student_id</code>. Ergebnis: Die Jobsuche bleibt auch bei vielen Einträgen schnell.</p>
 
-    <h2>Wie schaue ich selbst in die Datenbank? (GUI)</h2>
-    <p>Zwei Wege – Kommandozeile oder ein grafisches Programm:</p>
-    <h3>a) Kommandozeile</h3>
-    <pre><code>mysql -u root studywork        # verbinden
-SHOW TABLES;                    # alle Tabellen
-SELECT * FROM companies;        # alle Unternehmen ansehen
-DESCRIBE jobs;                  # Spalten der Tabelle jobs</code></pre>
-    <h3>b) Grafisches Programm (empfehlenswert)</h3>
-    <p>z. B. <strong>MySQL Workbench</strong>, <strong>DBeaver</strong>, <strong>TablePlus</strong> oder
-      <strong>phpMyAdmin</strong>. Damit klickt man sich durch die Tabellen wie durch Ordner.</p>
+    <h2>9. Wie greift das Backend zu? (Anbindung)</h2>
+    <p>Die komplette Verbindung steckt in <strong><code>backend/db.js</code></strong> – rund 40 Zeilen:</p>
+    <ul>
+      <li><strong>Connection Pool:</strong> Eine Datenbank-Verbindung aufzubauen kostet Zeit. Der „Pool" hält
+        bis zu 10 Verbindungen offen und verleiht sie an Anfragen – wie ein Taxistand: Wagen warten bereit,
+        statt für jede Fahrt ein neues Taxi zu bauen. Nach Gebrauch kommt die Verbindung zurück in den Pool.</li>
+      <li><strong>Zugangsdaten aus <code>.env</code>:</strong> Host, Benutzer, Passwort und DB-Name stehen in
+        einer lokalen Konfigurationsdatei, nie im Quellcode – so landen keine Geheimnisse im Git-Verlauf.</li>
+      <li><strong>Start-Check:</strong> Beim Hochfahren „pingt" der Server die Datenbank an. Antwortet sie
+        nicht, startet er gar nicht erst – mit einer klaren Meldung statt später rätselhafter Fehler.</li>
+    </ul>
+
+    <h3>Prepared Statements – der Schutz vor SQL-Injection</h3>
+    <p><strong>Das Angriffsszenario:</strong> Würde man Nutzereingaben direkt in SQL-Befehle hineinkleben,
+      könnte ein Angreifer im Suchfeld statt eines Ortes so etwas eingeben:
+      <code>Berlin'; DELETE FROM jobs; --</code> – und aus der harmlosen Suche würde ein Befehl, der die
+      Job-Tabelle <em>leert</em>. Das ist „SQL-Injection", einer der häufigsten Angriffe überhaupt.</p>
+    <div class="code-explain">
+      <pre><code>// ❌ GEFÄHRLICH (machen wir NIE): Eingabe in den Befehl geklebt
+"SELECT * FROM jobs WHERE location = '" + eingabe + "'"
+
+// ✅ UNSER WEG: Platzhalter + Werte getrennt übergeben
+pool.execute('SELECT * FROM jobs WHERE location = ?', [eingabe]);</code></pre>
+      <div class="lines">
+        <p>Beim Prepared Statement bekommt die Datenbank <strong>zuerst den Befehl mit Platzhaltern</strong>
+          (<code>?</code>) und <strong>dann die Werte separat</strong>. Sie behandelt die Eingabe dadurch
+          strikt als <em>Daten</em>, nie als Befehl – der Angriffstext oben würde einfach wörtlich nach
+          einem Ort namens „Berlin'; DELETE …" suchen (und nichts finden). Diese Technik verwenden wir bei
+          <strong>ausnahmslos jeder</strong> Abfrage.</p>
+      </div>
+    </div>
+
+    <h2>10. Einrichtung &amp; Beispieldaten (db_setup.sql)</h2>
+    <p>Das Skript <code>backend/db_setup.sql</code> baut die komplette Datenbank auf: Datenbank anlegen,
+      alle 6 Tabellen erstellen, Indizes setzen, Beispieldaten einfüllen. Es ist
+      <strong>idempotent</strong> – ein wichtiges Wort: Man kann es <em>beliebig oft</em> ausführen und
+      erhält immer denselben frischen Ausgangszustand (es löscht die Tabellen vorher und legt sie neu an).
+      Perfekt zum Zurücksetzen nach Experimenten – aber Achtung: eigene Test-Daten sind danach weg.</p>
+    <pre><code>mysql --default-character-set=utf8mb4 -u root &lt; backend/db_setup.sql</code></pre>
+    <p>Danach enthält die Datenbank: <strong>6 Unternehmen</strong>, <strong>1 Studenten-Demokonto</strong>
+      (Lena Hofmann, mit ausgefülltem Profil), <strong>20 Stellenanzeigen</strong> (17 aktiv, mit gestreuten
+      Datumsangaben – die Seite wirkt dadurch „lebendig"), <strong>5 Bewerbungen</strong> und
+      <strong>1 Job-Alert</strong>. Alle Demo-Logins nutzen das Passwort <code>studywork123</code>.</p>
+
+    <h2>11. Selbst hineinschauen: GUI &amp; Kommandozeile</h2>
+    <h3>a) Kommandozeile (überall verfügbar)</h3>
+    <pre><code>mysql -u root studywork      # mit der Datenbank verbinden
+SHOW TABLES;                  # welche Tabellen gibt es?
+DESCRIBE jobs;                # welche Spalten hat „jobs"?
+SELECT id, title, status FROM jobs;   # Daten ansehen</code></pre>
+    <h3>b) Grafische Oberfläche (bequemer)</h3>
+    <p>Kostenlose Programme wie <strong>MySQL Workbench</strong>, <strong>DBeaver</strong>,
+      <strong>TablePlus</strong> oder <strong>phpMyAdmin</strong> zeigen die Tabellen wie Ordner: anklicken,
+      durchblättern, Abfragen ausprobieren.</p>
     <div class="box info">
       <h4>Verbindungsdaten für die GUI</h4>
       <ul style="margin-bottom:0;">
-        <li>Host: <code>localhost</code> · Port: <code>3306</code></li>
-        <li>Benutzer / Passwort: wie in der <code>.env</code> (lokal z. B. <code>root</code> ohne Passwort)</li>
+        <li>Host: <code>localhost</code> · Port: <code>3306</code> (der Standard-Port von MySQL – nicht zu
+          verwechseln mit Port 3000 unseres Servers!)</li>
+        <li>Benutzer/Passwort: wie in der <code>.env</code> (lokal z. B. <code>root</code>)</li>
         <li>Datenbank/Schema: <code>studywork</code></li>
       </ul>
     </div>
 
-    <h2>Einrichtung &amp; Beispieldaten</h2>
-    <p>Das Skript <code>backend/db_setup.sql</code> legt die Datenbank, alle Tabellen und Beispieldaten an.
-      Es ist <strong>idempotent</strong> (löscht vorhandene Tabellen zuerst und baut sie neu) – man kann es
-      also gefahrlos erneut ausführen, um den Ausgangszustand wiederherzustellen.</p>
-    <pre><code>mysql --default-character-set=utf8mb4 -u root &lt; backend/db_setup.sql</code></pre>
-    <p>Danach enthält die Datenbank Demo-Inhalte: 6 Unternehmen, ein Studenten-Konto, 20 Stellenanzeigen und
-      einige Bewerbungen – damit die Seite gleich „lebendig" aussieht.</p>
+    <h2>12. Glossar</h2>
+    <table>
+      <tr><th>Begriff</th><th>Bedeutung</th></tr>
+      <tr><td>relational</td><td>Daten liegen in Tabellen, die über Schlüssel miteinander verknüpft sind.</td></tr>
+      <tr><td>SQL</td><td>die Abfragesprache: SELECT (lesen), INSERT (anlegen), UPDATE (ändern), DELETE (löschen).</td></tr>
+      <tr><td>Primärschlüssel (PK)</td><td>eindeutige Nummer jeder Zeile (bei uns <code>id</code>).</td></tr>
+      <tr><td>Fremdschlüssel (FK)</td><td>Spalte, die auf den PK einer anderen Tabelle zeigt – die Verknüpfung.</td></tr>
+      <tr><td>Multiplizität</td><td>„wie viele dürfen es sein?" an einem Beziehungsende (1, 0..1, 0..*).</td></tr>
+      <tr><td>referenzielle Integrität</td><td>die DB erzwingt, dass Verweise nie ins Leere zeigen.</td></tr>
+      <tr><td>ON DELETE CASCADE</td><td>Kinder werden beim Löschen der Eltern automatisch mitgelöscht.</td></tr>
+      <tr><td>Index</td><td>„Stichwortverzeichnis" für schnelle Suchen auf einer Spalte.</td></tr>
+      <tr><td>Connection Pool</td><td>vorgehaltene, wiederverwendete DB-Verbindungen (Taxistand-Prinzip).</td></tr>
+      <tr><td>Prepared Statement</td><td>SQL mit Platzhaltern; Werte getrennt → Schutz vor SQL-Injection.</td></tr>
+      <tr><td>idempotent</td><td>mehrfaches Ausführen führt immer zum selben Ergebnis (unser Setup-Skript).</td></tr>
+      <tr><td>Seed-Daten</td><td>vorbereitete Beispieldaten für den Start.</td></tr>
+    </table>
+
+    <h2>13. Typische Fragen – kurze Antworten</h2>
+    <dl class="qa">
+      <dt>Warum überhaupt eine Datenbank – der Server könnte sich Daten doch merken?</dt>
+      <dd>Nur bis zum nächsten Neustart. Eine Datenbank schreibt auf die Festplatte, kann gezielt suchen,
+        verhindert Widersprüche und verkraftet parallele Zugriffe.</dd>
+      <dt>Warum hat <code>applications</code> keinen Fremdschlüssel auf <code>students</code>?</dt>
+      <dd>Weil Bewerben ohne Konto möglich sein soll. Die Zuordnung zu einem Konto geschieht „weich" über
+        die identische E-Mail-Adresse.</dd>
+      <dt>Was passiert, wenn ein Unternehmen gelöscht wird?</dt>
+      <dd>CASCADE-Kettenreaktion: seine Jobs → deren Bewerbungen und Meldungen werden automatisch mitgelöscht.</dd>
+      <dt>Kann in <code>status</code> irgendein Text stehen?</dt>
+      <dd>Nein – es ist ein ENUM: Die Datenbank selbst akzeptiert nur die vorgegebenen Werte
+        (z. B. aktiv/pausiert/geschlossen).</dd>
+      <dt>Ist es nicht unsicher, den Lebenslauf in der Datenbank zu speichern?</dt>
+      <dd>Die PDF liegt als Text kodiert in einer Spalte und wird nur über eine zugriffsgeschützte
+        Backend-Route ausgeliefert (nur berechtigte Unternehmen). Für ein Produkt mit großen Dateien würde
+        man einen Datei-Speicher nutzen; für unsere Demo ist die DB-Lösung einfach und völlig ausreichend.</dd>
+      <dt>Port 3000 oder 3306 – was ist was?</dt>
+      <dd>3000 = unser Web-Server (Backend + Seiten), 3306 = der MySQL-Dienst. Zwei getrennte Programme,
+        zwei „Zimmernummern".</dd>
+      <dt>Woher „weiß" die Jobsuche so schnell die Treffer?</dt>
+      <dd>Durch Indizes auf den Filter-Spalten – die DB springt direkt zu den passenden Zeilen, statt alles
+        zu durchsuchen.</dd>
+    </dl>
+
+    <div class="talk">
+      <h3>🗣️ So erklärst du die Datenbank in 5 Sätzen weiter</h3>
+      <ol>
+        <li>Alle Daten von StudyWork liegen dauerhaft in einer MySQL-Datenbank namens
+          <code>studywork</code> – organisiert in 6 verknüpften Tabellen (Unternehmen, Studenten, Jobs,
+          Bewerbungen, Meldungen, Job-Alerts).</li>
+        <li>Verknüpft wird über Schlüssel: Jede Zeile hat eine eindeutige <code>id</code>
+          (Primärschlüssel), und Fremdschlüssel wie <code>jobs.company_id</code> zeigen darauf – so gehört
+          jeder Job zu genau einem Unternehmen, das selbst beliebig viele Jobs haben kann (1 : 0..*).</li>
+        <li>Einzige Besonderheit: Bewerbungen zeigen <em>nicht</em> fest auf Studenten, sondern werden nur
+          über die gleiche E-Mail zugeordnet – damit man sich auch ohne Konto bewerben kann.</li>
+        <li>Beim Löschen räumt ON DELETE CASCADE abhängige Daten automatisch mit weg, Indizes halten die
+          Suche schnell, und das Setup-Skript baut die ganze DB samt Beispieldaten jederzeit neu auf.</li>
+        <li>Zugriff hat ausschließlich das Backend – über einen Verbindungs-Pool und ausnahmslos mit
+          Prepared Statements, die SQL-Injection unmöglich machen.</li>
+      </ol>
+    </div>
 
     <div class="box info">
       <p style="margin:0;">➡️ Zurück zur <a href="index.html">Übersicht</a>, zum
-      <a href="backend.html">Backend</a> (wie die Daten gelesen/geschrieben werden) oder zum
-      <a href="frontend.html">Frontend</a> (wie sie angezeigt werden).</p>
+      <a href="backend.html">Backend</a> (wer diese Daten liest und schreibt) oder zum
+      <a href="frontend.html">Frontend</a> (wo sie angezeigt werden).</p>
     </div>
   </main>
 
-  <footer>StudyWork – Datenbank-Erklärung · Schema: <code>backend/db_setup.sql</code>, Anbindung: <code>backend/db.js</code>.</footer>
+  <footer>StudyWork – Datenbank-Erklärung · Schema: <code>backend/db_setup.sql</code>,
+    Anbindung: <code>backend/db.js</code>.</footer>
 </body>
 </html>

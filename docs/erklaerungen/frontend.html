@@ -13,119 +13,303 @@
     <a href="frontend.html" class="active">Frontend</a>
     <a href="backend.html">Backend</a>
     <a href="datenbank.html">Datenbank</a>
+    <a href="prof-fragen.html">Prof-Fragen</a>
   </nav>
 
   <main>
-    <h1>Frontend – was der Nutzer sieht</h1>
-    <p class="subtitle">Wie wir die sichtbare Web-Oberfläche gebaut haben und warum.</p>
+    <h1>Frontend – was der Nutzer sieht und bedient</h1>
+    <p class="subtitle">Wie die Oberfläche von StudyWork gebaut ist, wie sie an ihre Daten kommt – und warum
+      wir jede Entscheidung so getroffen haben.</p>
 
-    <div class="box key">
-      <h3>In einem Satz</h3>
-      <p style="margin-bottom:0;">Das Frontend sind die <strong>Web-Seiten im Browser</strong>. Wir haben
-      sie mit den drei Grund-Bausteinen des Webs gebaut: <strong>HTML</strong> (Struktur),
-      <strong>CSS</strong> (Aussehen) und <strong>JavaScript</strong> (Verhalten). Das JavaScript holt sich
-      die Daten vom <a href="backend.html">Backend</a> und zeigt sie an.</p>
+    <div class="goals">
+      <h4>🎯 Nach dieser Seite kannst du erklären:</h4>
+      <ul>
+        <li>was HTML, CSS und JavaScript jeweils tun (mit Mini-Beispielen),</li>
+        <li>wie unsere Seiten aufgebaut sind und wie sie Daten vom Server holen (<code>fetch</code> + JSON),</li>
+        <li>was die zentrale Datei <code>api.js</code> macht und warum es sie gibt,</li>
+        <li>wie Formular-Prüfung, Login-Anzeige, Dark-Mode und Responsive Design funktionieren,</li>
+        <li>was XSS ist und wie wir uns davor schützen.</li>
+      </ul>
     </div>
 
-    <h2>Die drei Bausteine – mit einer Analogie</h2>
+    <h2>1. Die drei Bausteine: HTML, CSS, JavaScript</h2>
     <div class="box analogy">
-      <p style="margin:0;">Denk an ein Haus: <strong>HTML ist der Rohbau</strong> (Wände, Räume, Türen),
-      <strong>CSS ist die Einrichtung und der Anstrich</strong> (Farben, Möbel, Stil) und
-      <strong>JavaScript ist die Elektrik</strong> (Lichtschalter, Bewegungsmelder – alles, was auf Aktionen
-      reagiert).</p>
-    </div>
-    <ul>
-      <li><strong>HTML</strong> legt fest, <em>was</em> auf der Seite steht: Überschriften, Textfelder,
-        Knöpfe, Listen. Jede Seite ist eine eigene <code>.html</code>-Datei.</li>
-      <li><strong>CSS</strong> legt fest, <em>wie</em> es aussieht: Farben, Abstände, Schriften, und dass es
-        auf Handy, Tablet und PC gut aussieht. Alles in einer Datei: <code>css/style.css</code>.</li>
-      <li><strong>JavaScript</strong> legt fest, <em>was passiert</em>: Klick auf „Suchen", Formular
-        absenden, Daten laden und anzeigen. Aufgeteilt in mehrere Dateien unter <code>js/</code>.</li>
-    </ul>
-    <div class="box why">
-      <h4>Warum „pures" JavaScript und kein Framework (wie React/Vue)?</h4>
-      <p style="margin-bottom:0;">Weil die Aufgabenstellung genau das verlangt (HTML/CSS/JavaScript) und
-      unser Projekt überschaubar ist. Ohne Framework bleibt der Code <strong>durchschaubar</strong> – man
-      sieht genau, was passiert, ohne eine zusätzliche „Magie"-Ebene. Das ist auch fürs Verstehen und
-      Präsentieren einfacher.</p>
+      <p style="margin:0;"><strong>Haus-Analogie:</strong> HTML ist der <strong>Rohbau</strong> (Wände,
+      Räume, Türen), CSS ist <strong>Einrichtung und Anstrich</strong> (Farben, Möbel, Stil), JavaScript ist
+      die <strong>Elektrik</strong> (Lichtschalter, Türöffner – alles, was auf Aktionen reagiert).</p>
     </div>
 
-    <h2>Wie die Seiten aufgebaut sind</h2>
-    <p>Es ist eine klassische <strong>Mehrseiten-Website</strong>: Für jeden Bereich gibt es eine eigene
-      HTML-Datei. Klickt man einen Link, lädt der Browser die nächste Seite.</p>
+    <h3>HTML – die Struktur (<em>was</em> steht auf der Seite?)</h3>
+    <p>HTML besteht aus „Tags" – Markierungen in spitzen Klammern, die Inhalte auszeichnen:</p>
+    <div class="code-explain">
+      <pre><code>&lt;h1&gt;Jobs finden&lt;/h1&gt;
+&lt;input type="search" id="f-title" placeholder="Stichwort, z. B. Marketing" /&gt;
+&lt;button type="submit"&gt;Suchen&lt;/button&gt;</code></pre>
+      <div class="lines">
+        <p><code>&lt;h1&gt;…&lt;/h1&gt;</code> – eine Überschrift erster Ordnung.</p>
+        <p><code>&lt;input type="search"&gt;</code> – ein Eingabefeld; das <code>id</code> ist sein „Name",
+          über den JavaScript es später findet.</p>
+        <p><code>&lt;button&gt;</code> – ein Knopf. Mehr ist HTML im Kern nicht: Inhalte benennen.</p>
+      </div>
+    </div>
+
+    <h3>CSS – das Aussehen (<em>wie</em> sieht es aus?)</h3>
+    <p>CSS besteht aus Regeln: „Wähle Elemente aus → gib ihnen Eigenschaften."</p>
+    <div class="code-explain">
+      <pre><code>.btn-primary {
+  background: #0e7c52;   /* grüne Füllung */
+  color: white;          /* weiße Schrift */
+  border-radius: 999px;  /* runde Ecken */
+}</code></pre>
+      <div class="lines">
+        <p><code>.btn-primary</code> – „alle Elemente mit der Klasse <em>btn-primary</em>" (unsere grünen
+          Hauptknöpfe).</p>
+        <p>Die Zeilen darunter sind Eigenschaften: Hintergrundfarbe, Schriftfarbe, Eckenrundung.</p>
+        <p>Unser gesamtes Design steckt in <strong>einer</strong> Datei: <code>frontend/css/style.css</code>.</p>
+      </div>
+    </div>
+
+    <h3>JavaScript – das Verhalten (<em>was passiert</em> bei Aktionen?)</h3>
+    <div class="code-explain">
+      <pre><code>button.addEventListener('click', () =&gt; {
+  ladeJobs();   // wenn geklickt wird: Jobs laden
+});</code></pre>
+      <div class="lines">
+        <p><code>addEventListener('click', …)</code> heißt wörtlich: „Höre auf das Ereignis <em>Klick</em>
+          und führe dann diesen Code aus." So reagiert die Seite auf den Nutzer.</p>
+        <p>JavaScript kann außerdem die Seite <strong>umbauen</strong> (Inhalte einfügen/entfernen) und
+          <strong>mit dem Server reden</strong> – dazu gleich mehr.</p>
+      </div>
+    </div>
+
+    <div class="box why">
+      <h4>Warum „pures" JavaScript und kein Framework (React, Vue …)?</h4>
+      <p style="margin-bottom:0;">Erstens verlangt die Aufgabenstellung genau diesen Grundstack. Zweitens ist
+      unser Projekt überschaubar genug, dass ein Framework mehr verdecken als helfen würde: Ohne Framework
+      sieht man in jedem Schritt, <em>was wirklich passiert</em> – ideal zum Lernen, Erklären und Bewerten.
+      Der Preis: Wir mussten ein paar Dinge selbst bauen (z. B. die gemeinsame Navigation), was Frameworks
+      sonst abnehmen. Für diese Projektgröße ist das ein guter Tausch.</p>
+    </div>
+
+    <h2>2. Aufbau: eine klassische Mehrseiten-Website</h2>
+    <p>StudyWork ist eine <strong>Multi-Page-App (MPA)</strong>: Jeder Bereich ist eine eigene HTML-Datei.
+      Klickt man einen Link, lädt der Browser die nächste Seite. (Die Alternative wäre eine
+      „Single-Page-App", bei der eine einzige Seite alles per JavaScript nachlädt – mächtiger, aber deutlich
+      komplexer. Für unsere klar getrennten Bereiche ist die MPA die einfachere, ehrlichere Wahl.)</p>
     <div class="filetree">frontend/
-├── index.html              ← Startseite
-├── jobs.html               ← Jobsuche (Liste + Filter)
+├── index.html              ← Startseite (Suchfeld, neueste Jobs, Statistiken)
+├── jobs.html               ← Jobsuche: Liste + Filter + Sortierung
 ├── job-detail.html         ← eine Stelle im Detail + Bewerbungsformular
-├── company-dashboard.html  ← Bereich für Unternehmen
-├── profile.html            ← Studenten-Profil
-├── login.html / register.html  ← Anmelden / Registrieren
-├── 404.html                ← Fehlerseite (Seite nicht gefunden)
-├── css/style.css           ← das komplette Aussehen
-└── js/                     ← das Verhalten (JavaScript)
-    ├── api.js     ← Grundbaustein: redet mit dem Backend, lädt überall
+├── company-dashboard.html  ← Bereich für Unternehmen (nur mit Login)
+├── profile.html            ← Studenten-Profil, Lebenslauf, Bewerbungen, Job-Alerts
+├── login.html / register.html ← Anmelden / Konto erstellen
+├── 404.html                ← freundliche Fehlerseite
+├── css/style.css           ← das komplette Aussehen (inkl. Dark-Mode)
+└── js/
+    ├── api.js     ← Grundbaustein jeder Seite (Details unten)
     ├── jobs.js    ← Logik für Jobsuche + Jobdetail
     ├── company.js ← Logik für das Unternehmens-Dashboard
-    ├── auth.js    ← Logik für Login & Registrierung
+    ├── auth.js    ← Logik für Login &amp; Registrierung
     └── profile.js ← Logik für das Studenten-Profil</div>
+    <p>Jede HTML-Seite lädt am Ende zwei Skripte – immer zuerst <code>api.js</code>, dann ihr eigenes
+      Modul:</p>
+    <pre><code>&lt;script src="js/api.js" defer&gt;&lt;/script&gt;
+&lt;script src="js/jobs.js" defer&gt;&lt;/script&gt;</code></pre>
+    <p>(<code>defer</code> heißt: „führe das Skript erst aus, wenn die Seite fertig gelesen ist" – sonst
+      würde JavaScript nach Elementen suchen, die es noch gar nicht gibt.) Woran erkennt
+      <code>jobs.js</code>, ob es gerade die Suche oder die Detailseite bedient? Am
+      <code>&lt;body data-page="jobs"&gt;</code>-Attribut – eine kleine Markierung im HTML.</p>
 
-    <h2>Das Herzstück: <code>api.js</code></h2>
-    <p>Diese Datei wird auf <em>jeder</em> Seite geladen. Sie hat vier Aufgaben:</p>
+    <h2>3. Wie kommt die Seite an ihre Daten? (<code>fetch</code> + JSON)</h2>
+    <p>Eine HTML-Datei ist zunächst „leer" – die Jobliste steht nicht im HTML, sondern kommt aus der
+      Datenbank. Den Transport übernimmt <code>fetch</code>, eine eingebaute Browser-Funktion, die im
+      Hintergrund eine HTTP-Anfrage an den Server schickt (<em>ohne</em> die Seite neu zu laden):</p>
+    <div class="code-explain">
+      <pre><code>const antwort = await fetch('/api/v1/jobs?location=Berlin');
+const paket   = await antwort.json();
+// paket = { success: true, data: [ {id: 1, title: "Werkstudent Backend", …}, … ] }</code></pre>
+      <div class="lines">
+        <p><strong>Zeile 1:</strong> Anfrage an das <a href="backend.html">Backend</a>: „Gib mir alle Jobs
+          in Berlin." <code>await</code> heißt „warte, bis die Antwort da ist".</p>
+        <p><strong>Zeile 2:</strong> Die Antwort ist Text im <strong>JSON</strong>-Format –
+          <code>.json()</code> macht daraus ein JavaScript-Objekt, mit dem der Code arbeiten kann.</p>
+        <p><strong>Zeile 3:</strong> So sieht das Paket aus: ein Erfolgs-Kennzeichen und die eigentlichen
+          Daten (eine Liste von Jobs).</p>
+      </div>
+    </div>
+
+    <h3>Das Herzstück: <code>api.js</code></h3>
+    <p>Damit nicht jede Seite diese Technik selbst nachbauen muss, gibt es <strong>einen zentralen
+      Baustein</strong>, der auf jeder Seite geladen wird. Er übernimmt vier Dinge:</p>
     <ol>
-      <li><strong>Mit dem Backend reden.</strong> Immer wenn die Seite Daten braucht (z. B. „alle Jobs"),
-        fragt sie über <code>api.js</code> beim Backend an. Der Fachbegriff dafür ist
-        <code>fetch</code> – eine eingebaute Browser-Funktion, die eine Anfrage übers Netz schickt.</li>
-      <li><strong>Navigation &amp; Fußzeile einbauen.</strong> Damit oben überall dieselbe Menüleiste
-        erscheint (ohne sie auf jeder Seite zu kopieren).</li>
-      <li><strong>Anzeigen, wer eingeloggt ist.</strong> Beim Laden fragt die Seite „Wer bin ich?" beim
-        Backend und zeigt dann entweder „Anmelden" oder den Namen + „Abmelden".</li>
-      <li><strong>Hell-/Dunkel-Modus</strong> und kleine Helfer (z. B. Erfolgs-/Fehlermeldungen).</li>
+      <li><strong>Der API-Client:</strong> sprechende Funktionen für jede Server-Anlaufstelle. Die Seiten
+        schreiben nicht selbst <code>fetch(…)</code>, sondern z. B.:
+        <pre><code>StudyWork.API.jobs.list({ location: 'Berlin' })  // Jobs suchen
+StudyWork.API.applications.create({ … })         // Bewerbung absenden
+StudyWork.API.auth.login({ … })                  // anmelden</code></pre>
+        Intern steckt dahinter genau ein <code>fetch</code>-Wrapper, der auch die Fehlerbehandlung
+        vereinheitlicht: Meldet der Server <code>success: false</code>, wird daraus automatisch eine
+        verständliche Fehlermeldung für den Nutzer.</li>
+      <li><strong>Navigation &amp; Fußzeile:</strong> werden per JavaScript auf jeder Seite eingefügt –
+        so existiert das Menü nur <em>einmal</em> im Code statt achtmal kopiert (weniger Fehler, eine
+        Änderung wirkt überall).</li>
+      <li><strong>Login-Anzeige:</strong> Beim Laden fragt jede Seite den Server „Wer bin ich?"
+        (<code>GET /api/v1/auth/me</code>). Je nach Antwort zeigt die Navigation „Anmelden/Registrieren"
+        oder den Namen mit „Abmelden".</li>
+      <li><strong>UI-Helfer:</strong> Erfolgs-/Fehlermeldungen (kleine Einblendungen, „Toasts"),
+        Datumsformatierung („vor 3 Tagen"), der Hell/Dunkel-Umschalter, die Job-Kachel als
+        wiederverwendbare Vorlage u. v. m.</li>
     </ol>
     <div class="box why">
       <h4>Warum eine zentrale <code>api.js</code>?</h4>
-      <p style="margin-bottom:0;">Damit die einzelnen Seiten nicht jedes Mal die technischen Details des
-      Datenaustauschs kennen müssen. Sie rufen einfach z. B. <code>API.jobs.list()</code> auf – der Rest
-      passiert im Hintergrund. Das vermeidet <strong>doppelten Code</strong> und Fehler.</p>
+      <p style="margin-bottom:0;">Das Prinzip heißt „Don't repeat yourself" (wiederhole dich nicht). Alles,
+      was mehrere Seiten brauchen, existiert genau einmal. Vorteil: Ändert sich z. B. das Antwortformat des
+      Servers, passen wir <em>eine</em> Datei an – nicht fünf. Und die Seitenlogik bleibt lesbar, weil sie
+      nur noch sagt <em>was</em> sie will, nicht <em>wie</em> der Transport funktioniert.</p>
     </div>
 
-    <h2>Wie eine Seite ihre Daten bekommt (Beispiel Jobsuche)</h2>
-    <ol>
-      <li>Die Seite lädt und zeigt zunächst graue Platzhalter (damit es nicht leer wirkt).</li>
-      <li>Das JavaScript fragt beim <a href="backend.html">Backend</a> nach den Jobs.</li>
-      <li>Das Backend holt sie aus der <a href="datenbank.html">Datenbank</a> und schickt sie als Daten zurück.</li>
-      <li>Das JavaScript baut aus jedem Job eine „Kachel" und setzt sie in die Seite.</li>
-      <li>Tippt man ins Suchfeld, wird automatisch neu gesucht; die Filter landen in der Adresszeile
-        (URL), sodass man einen Suchlink teilen kann.</li>
+    <h2>4. Walkthrough 1: Die Jobsuche (jobs.html + jobs.js)</h2>
+    <ol class="steps">
+      <li><strong>Platzhalter zeigen:</strong> Direkt beim Laden erscheinen graue „Skeleton"-Kacheln.
+        So wirkt die Seite nie leer oder eingefroren, während Daten unterwegs sind.</li>
+      <li><strong>Daten holen:</strong> <code>API.jobs.list(filter)</code> fragt das Backend; dabei werden
+        die aktuellen Filter (Stichwort, Ort, Anstellungsart) als Parameter mitgeschickt. Studenten sehen
+        dabei grundsätzlich nur <em>aktive</em> Stellen.</li>
+      <li><strong>Anzeigen:</strong> Für jeden Job baut das JavaScript eine Kachel (Titel, Firma, Ort,
+        Gehalt, „Neu"-Abzeichen bei Stellen &lt; 7 Tage) und fügt sie in die Seite ein.</li>
+      <li><strong>Live-Suche:</strong> Tippt man ins Suchfeld, wird automatisch neu gesucht – mit einer
+        kleinen Verzögerung („Debounce"): Erst wenn man ~0,3 s nicht mehr tippt, geht die Anfrage raus.
+        Sonst würde bei „Marketing" für M, Ma, Mar … je eine eigene Anfrage entstehen.</li>
+      <li><strong>Teilbare Links:</strong> Die aktiven Filter werden in die Adresszeile geschrieben
+        (z. B. <code>jobs.html?title=Marketing</code>). Diesen Link kann man kopieren und verschicken –
+        der Empfänger sieht exakt dieselbe gefilterte Suche.</li>
+      <li><strong>Extras:</strong> „Nur Remote"-Schalter, Sortierung, Merkliste per Herz (lokal im Browser
+        gespeichert), leere Zustände mit freundlichem Hinweis statt weißer Fläche.</li>
     </ol>
 
-    <h2>Worauf wir beim Aussehen (Design) geachtet haben</h2>
+    <h2>5. Walkthrough 2: Das Bewerbungsformular (unser Lena-Beispiel)</h2>
+    <ol class="steps">
+      <li>Auf der Detailseite steht das Formular: Name, E-Mail, Anschreiben (mit Zeichenzähler). Ist Lena
+        <strong>eingeloggt</strong>, sind Name und E-Mail schon aus ihrem Konto vorausgefüllt. Hat sie sich
+        auf diese Stelle <strong>schon beworben</strong>, erscheint statt des Formulars ein Hinweis mit dem
+        aktuellen Status ihrer Bewerbung.</li>
+      <li><strong>Client-Prüfung beim Absenden:</strong> Pflichtfelder leer? E-Mail ohne <code>@</code>?
+        Dann zeigt das Frontend die Fehler direkt am jeweiligen Feld an – schnell und ohne Server-Kontakt.</li>
+      <li>Ist alles plausibel, schickt <code>API.applications.create(…)</code> die Daten als
+        <code>POST</code>-Anfrage ans Backend. Der Absenden-Knopf wird währenddessen deaktiviert und zeigt
+        „Wird gesendet…" – damit niemand doppelt klickt.</li>
+      <li>Kommt <strong>Erfolg</strong> zurück, wird das Formular durch eine Bestätigung ersetzt. Kommt ein
+        <strong>Fehler</strong> (z. B. „bereits beworben" – das weiß nur der Server), erscheint die Meldung
+        des Servers als Einblendung, und Lena kann korrigieren.</li>
+    </ol>
+    <div class="box key">
+      <h4>Warum prüfen Frontend UND Backend?</h4>
+      <p style="margin-bottom:0;">Die Frontend-Prüfung ist <strong>Komfort</strong> (sofortiges Feedback,
+      keine unnötigen Anfragen). Verbindlich ist sie nicht: Jeder kann im Browser die Prüfungen aushebeln
+      oder Anfragen direkt an den Server schicken. Deshalb prüft das <a href="backend.html">Backend</a>
+      alles noch einmal – <strong>das</strong> ist die echte Kontrolle. Merksatz: <em>Frontend-Prüfung ist
+      Höflichkeit, Backend-Prüfung ist Sicherheit.</em></p>
+    </div>
+
+    <h2>6. Login im Frontend: woher weiß die Seite, wer ich bin?</h2>
+    <p>Nach dem Anmelden bekommt der Browser vom Server ein <strong>Sitzungs-Cookie</strong> (eine Art
+      Eintrittsstempel – Details auf der <a href="backend.html">Backend-Seite</a>). Wichtig fürs Frontend:</p>
     <ul>
-      <li><strong>Einheitlicher Look</strong> („Corporate Design"): feste Farben (Creme, Grün, Bernstein),
-        ein Logo, klare Schriften – überall gleich.</li>
-      <li><strong>Responsive:</strong> funktioniert auf Handy, Tablet und Desktop; das Menü bricht auf
-        kleinen Bildschirmen sauber um.</li>
-      <li><strong>Hell-/Dunkel-Modus</strong> per Umschalter.</li>
-      <li><strong>Gute Rückmeldungen:</strong> Ladeanzeigen, freundliche „nichts gefunden"-Hinweise,
-        Erfolgs-/Fehlermeldungen als kleine Einblendungen.</li>
+      <li>Der Browser schickt dieses Cookie <strong>automatisch</strong> bei jeder Anfrage mit – unser
+        JavaScript muss (und kann!) es nicht anfassen: Es ist als „HttpOnly" markiert, also für JavaScript
+        unsichtbar. Das schützt es vor Diebstahl durch eingeschleusten Code.</li>
+      <li>Die Seite erfährt nur über die Frage <code>GET /auth/me</code>, <em>wer</em> eingeloggt ist, und
+        passt die Oberfläche an (Name in der Navigation, Dashboard-Zugang, vorausgefüllte Formulare).</li>
+      <li><strong>Abmelden</strong> führt immer zurück zur Startseite, damit keine geschützten Inhalte
+        (z. B. ein Profil) sichtbar stehen bleiben, und zeigt eine Bestätigung an.</li>
     </ul>
 
-    <h2>Sicherheit im Frontend (einfach erklärt)</h2>
+    <h2>7. Design: responsive, Dark-Mode, Barrierefreiheit</h2>
     <ul>
-      <li><strong>Schutz vor Schadcode (XSS):</strong> Texte, die aus der Datenbank kommen (z. B. ein
-        Jobtitel), werden vor der Anzeige „entschärft". So kann niemand über einen manipulierten Text
-        heimlich Programmcode einschleusen.</li>
-      <li><strong>Die eigentliche Rechteprüfung passiert im <a href="backend.html">Backend</a>.</strong>
-        Das Frontend blendet Dinge nur der Bequemlichkeit halber aus – verlassen kann man sich nur auf den
-        Server. (Warum? Weil man im Browser alles manipulieren könnte – die verbindliche Kontrolle muss
-        deshalb hinter den Kulissen sitzen.)</li>
+      <li><strong>Corporate Design:</strong> Ein fester Farb- und Schriftbaukasten („Ink &amp; Amber":
+        Creme-Hintergrund, dunkle Konturen, Grün/Bernstein als Akzente) ist als <strong>CSS-Variablen</strong>
+        ganz oben in <code>style.css</code> definiert – Farben ändert man an genau einer Stelle, und die
+        ganze App zieht mit.</li>
+      <li><strong>Responsive:</strong> Mit „Media Queries" (CSS-Regeln, die nur ab/unter bestimmten
+        Bildschirmbreiten gelten) ordnet sich das Layout um: Auf dem Handy stapeln sich die Job-Kacheln
+        untereinander, die Navigation bricht sauber um; auf dem Desktop gibt es mehrere Spalten. Getestet
+        für ~375 px (Handy), 768 px (Tablet) und 1280 px+ (PC).</li>
+      <li><strong>Dark-Mode:</strong> Der Umschalter setzt ein Attribut am Seitenanfang
+        (<code>data-theme="dark"</code>); das CSS tauscht daraufhin nur die Farbvariablen aus. Die Wahl wird
+        im <strong>localStorage</strong> gespeichert – einem kleinen Merkzettel des Browsers, der auch nach
+        dem Schließen erhalten bleibt (dort liegt auch die Merkliste).</li>
+      <li><strong>Barrierefreiheit:</strong> aussagekräftige Beschriftungen für Vorlese-Software
+        (ARIA-Labels an Icon-Knöpfen), Bedienbarkeit per Tastatur, und in Dialogen bleibt der Fokus
+        „gefangen", bis man sie schließt.</li>
     </ul>
+
+    <h2>8. Sicherheit im Frontend: Was ist XSS?</h2>
+    <p><strong>XSS („Cross-Site-Scripting")</strong> ist ein Angriff, bei dem jemand <em>Code als Inhalt</em>
+      einschleust. Beispiel: Ein Angreifer legt einen Job an mit dem Titel
+      <code>&lt;script&gt;stehleDaten()&lt;/script&gt;</code>. Würden wir diesen Titel ungefiltert in die
+      Seite einbauen, würde der Browser ihn als <em>Programm</em> ausführen – bei jedem Besucher!</p>
+    <p><strong>Unser Schutz:</strong> Jeder Text, der von außen kommt (aus der Datenbank, von Nutzern), läuft
+      vor der Anzeige durch eine Funktion <code>escapeHtml()</code>. Sie ersetzt gefährliche Zeichen durch
+      harmlose Darstellungen (aus <code>&lt;</code> wird <code>&amp;lt;</code>). Ergebnis: Der Browser
+      <em>zeigt</em> den Text nur an, statt ihn auszuführen. Diese Regel gilt bei uns ausnahmslos – kein
+      Nutzertext landet ungefiltert im HTML.</p>
+
+    <h2>9. Glossar</h2>
+    <table>
+      <tr><th>Begriff</th><th>Bedeutung</th></tr>
+      <tr><td>DOM</td><td>Die „Baumstruktur" der geladenen Seite im Browser. JavaScript verändert das DOM, um Inhalte einzufügen oder auszutauschen.</td></tr>
+      <tr><td>Event / Event-Listener</td><td>Ereignis (Klick, Tastendruck, Absenden) / der Code, der darauf reagiert.</td></tr>
+      <tr><td><code>fetch</code></td><td>Browser-Funktion, um im Hintergrund HTTP-Anfragen zu schicken.</td></tr>
+      <tr><td>JSON</td><td>Textformat für Datenaustausch: <code>{"schlüssel": "wert"}</code>.</td></tr>
+      <tr><td>localStorage</td><td>Kleiner dauerhafter Speicher des Browsers pro Website (bei uns: Theme-Wahl, Merkliste).</td></tr>
+      <tr><td>Debounce</td><td>„Erst handeln, wenn kurz Ruhe ist" – verhindert eine Anfragen-Flut beim Tippen.</td></tr>
+      <tr><td>Responsive Design</td><td>Layout passt sich der Bildschirmgröße an (Handy/Tablet/PC).</td></tr>
+      <tr><td>MPA / SPA</td><td>Mehrseiten-App (jede Seite eine Datei – unser Ansatz) / Einseiten-App (eine Seite lädt alles nach).</td></tr>
+      <tr><td>XSS</td><td>Angriff durch eingeschleusten Code in Inhalten; abgewehrt durch Escaping.</td></tr>
+    </table>
+
+    <h2>10. Typische Fragen – kurze Antworten</h2>
+    <dl class="qa">
+      <dt>Warum kein React/Vue?</dt>
+      <dd>Aufgabenstellung + Projektgröße: Purer Code ist hier durchschaubarer; ein Framework würde mehr
+        verdecken als nützen.</dd>
+      <dt>Woher weiß eine Seite, welche Logik sie ausführen soll?</dt>
+      <dd>Über <code>&lt;body data-page="…"&gt;</code> – das JavaScript liest diese Markierung und startet
+        den passenden Teil.</dd>
+      <dt>Warum sieht man beim Laden kurz graue Kästen?</dt>
+      <dd>Das sind Skeleton-Platzhalter: Sie zeigen „hier kommt gleich etwas" statt einer leeren Fläche,
+        während die Daten vom Server unterwegs sind.</dd>
+      <dt>Kann das Frontend Nutzer wirklich „schützen"?</dt>
+      <dd>Nein – es kann nur helfen und führen. Alles Sicherheitsrelevante entscheidet das
+        <a href="backend.html">Backend</a>; das Frontend könnte von jedem Nutzer manipuliert werden.</dd>
+      <dt>Was passiert, wenn der Server nicht erreichbar ist?</dt>
+      <dd>Der <code>fetch</code>-Wrapper fängt das ab und zeigt eine verständliche Meldung
+        („Netzwerkfehler – der Server ist nicht erreichbar") statt einer kaputten Seite.</dd>
+    </dl>
+
+    <div class="talk">
+      <h3>🗣️ So erklärst du das Frontend in 5 Sätzen weiter</h3>
+      <ol>
+        <li>Das Frontend sind die Web-Seiten im Browser, gebaut aus HTML (Struktur), CSS (Aussehen) und
+          JavaScript (Verhalten) – bewusst ohne Framework, damit alles nachvollziehbar bleibt.</li>
+        <li>Jeder Bereich ist eine eigene HTML-Seite; eine zentrale Datei <code>api.js</code> lädt auf allen
+          Seiten und übernimmt den Datenaustausch mit dem Server, die Navigation und die Login-Anzeige.</li>
+        <li>Daten holt die Seite per <code>fetch</code> vom Backend – als JSON – und baut daraus z. B. die
+          Job-Kacheln; beim Tippen wird live (mit Debounce) neu gesucht, Filter landen teilbar in der URL.</li>
+        <li>Formulare werden doppelt geprüft: im Frontend für schnelles Feedback, verbindlich aber noch
+          einmal im Backend.</li>
+        <li>Design: einheitliche Farbvariablen, responsive für Handy bis Desktop, Dark-Mode per Umschalter –
+          und alle Fremdtexte werden vor der Anzeige „escaped", um XSS-Angriffe zu verhindern.</li>
+      </ol>
+    </div>
 
     <div class="box info">
-      <p style="margin:0;">➡️ Als Nächstes: <a href="backend.html">Wie das Backend die Anfragen bearbeitet</a>
-      oder <a href="datenbank.html">wie die Daten gespeichert werden</a>.</p>
+      <p style="margin:0;">➡️ Weiter zum <a href="backend.html">Backend</a> (wohin all diese Anfragen gehen)
+      oder zur <a href="datenbank.html">Datenbank</a> (wo die Daten liegen).</p>
     </div>
   </main>
 
-  <footer>StudyWork – Frontend-Erklärung · Quellen: <code>frontend/*.html</code>, <code>frontend/js/*.js</code>, <code>frontend/css/style.css</code>.</footer>
+  <footer>StudyWork – Frontend-Erklärung · Quellen: <code>frontend/*.html</code>,
+    <code>frontend/js/*.js</code>, <code>frontend/css/style.css</code>.</footer>
 </body>
 </html>

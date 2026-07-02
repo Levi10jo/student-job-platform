@@ -13,153 +13,359 @@
     <a href="frontend.html">Frontend</a>
     <a href="backend.html" class="active">Backend</a>
     <a href="datenbank.html">Datenbank</a>
+    <a href="prof-fragen.html">Prof-Fragen</a>
   </nav>
 
   <main>
-    <h1>Backend – die „Küche" hinter den Kulissen</h1>
-    <p class="subtitle">Der selbst geschriebene Server: wie er Anfragen bearbeitet, die Regeln durchsetzt und
-      mit der Datenbank redet – und warum wir es so gemacht haben.</p>
+    <h1>Backend – der Server hinter den Kulissen</h1>
+    <p class="subtitle">Wie unser selbst geschriebener Server Anfragen entgegennimmt, prüft, entscheidet und
+      mit der Datenbank arbeitet – und warum wir es genau so gebaut haben.</p>
 
-    <div class="box key">
-      <h3>In einem Satz</h3>
-      <p style="margin-bottom:0;">Das Backend ist ein <strong>selbst geschriebener Server</strong> mit
-      <strong>Node.js</strong> und <strong>Express</strong>. Er stellt eine <strong>REST-API</strong> bereit
-      (eine Sammlung von „Anlaufstellen", die das <a href="frontend.html">Frontend</a> aufrufen kann),
-      prüft alle Eingaben und spricht als Einziger mit der <a href="datenbank.html">Datenbank</a>.</p>
+    <div class="goals">
+      <h4>🎯 Nach dieser Seite kannst du erklären:</h4>
+      <ul>
+        <li>was ein Server, Node.js und Express sind – und was beim Start unseres Servers passiert,</li>
+        <li>was eine REST-API ist: Adressen, die 5 Methoden, Statuscodes, JSON-Antworten,</li>
+        <li>wie eine Anfrage im Code wirklich bearbeitet wird (Zeile für Zeile am Bewerbungs-Beispiel),</li>
+        <li>wie Login mit Passwort-Hash, Sitzung und Cookie funktioniert,</li>
+        <li>wovor uns Prepared Statements, Rechteprüfungen und <code>.env</code> schützen – und was Swagger ist.</li>
+      </ul>
     </div>
 
-    <h2>Was ist ein „Server" – und was ist Node.js / Express?</h2>
+    <h2>1. Was ist ein Server – und was sind Node.js und Express?</h2>
     <ul>
-      <li>Ein <strong>Server</strong> ist ein Programm, das ständig läuft und auf Anfragen wartet – wie ein
-        Kellner, der auf Bestellungen wartet.</li>
-      <li><strong>Node.js</strong> ermöglicht es, solche Server-Programme in der Sprache JavaScript zu
-        schreiben.</li>
-      <li><strong>Express</strong> ist eine schlanke Hilfs-Bibliothek, die das Schreiben eines Servers stark
-        vereinfacht (z. B. „wenn jemand diese Adresse aufruft, tue Folgendes…").</li>
+      <li>Ein <strong>Server</strong> ist ein Programm, das dauerhaft läuft und auf Anfragen wartet – wie
+        ein Kellner im Dienst. Er „horcht" auf einer bestimmten <strong>Port</strong>-Nummer (bei uns 3000).
+        Kommt eine Anfrage an <code>localhost:3000</code>, ist er zuständig.</li>
+      <li><strong>Node.js</strong> ist die Laufzeitumgebung, mit der man solche Programme in JavaScript
+        schreiben kann – derselben Sprache wie im <a href="frontend.html">Frontend</a>. Ein großer
+        Praxisvorteil: Das ganze Team denkt in einer Sprache.</li>
+      <li><strong>Express</strong> ist eine schlanke Bibliothek für Node.js, die einem das Grundgerüst
+        abnimmt: „Wenn jemand <em>diese</em> Adresse mit <em>dieser</em> Methode aufruft, führe
+        <em>diesen</em> Code aus." Ein vollständiges Beispiel aus unserem Server:</li>
     </ul>
+    <div class="code-explain">
+      <pre><code>app.get('/api/v1/health', (req, res) =&gt; {
+  res.json({ success: true, data: { status: 'ok' } });
+});</code></pre>
+      <div class="lines">
+        <p><code>app.get(…)</code> – „registriere eine Anlaufstelle für <strong>GET</strong>-Anfragen".</p>
+        <p><code>'/api/v1/health'</code> – die Adresse (der „Pfad"), unter der sie erreichbar ist.</p>
+        <p><code>(req, res) =&gt; { … }</code> – die Bearbeitungsfunktion: <code>req</code> (Request) enthält
+          alles über die <em>Anfrage</em>, <code>res</code> (Response) ist das Werkzeug zum <em>Antworten</em>.</p>
+        <p><code>res.json(…)</code> – schickt die Antwort als JSON zurück. Dieser „Health-Check" sagt
+          schlicht: „Ich lebe."</p>
+      </div>
+    </div>
     <div class="box why">
-      <h4>Warum Node.js + Express?</h4>
-      <p style="margin-bottom:0;">So können wir Frontend <em>und</em> Backend in <strong>derselben Sprache</strong>
-      (JavaScript) schreiben – das spart Umgewöhnung. Express ist bewusst „durchsichtig": jeder Bearbeitungs-
-      Schritt ist von Hand geschrieben und nachvollziehbar (keine Blackbox). Genau das verlangt auch die
-      Aufgabenstellung („selbst erstellter Webserver / Node.js").</p>
+      <h4>Warum zählt das als „selbst erstellter Webserver"?</h4>
+      <p style="margin-bottom:0;">Express nimmt uns nur das Zerlegen der HTTP-Nachrichten ab. <strong>Jede
+      einzelne Anlaufstelle</strong> – was geprüft wird, welche Datenbank-Abfrage läuft, was zurückkommt –
+      haben wir von Hand geschrieben und kommentiert. Es gibt keinen Code-Generator und keine fertige
+      „Blackbox": Man kann für jede Funktion der App die Zeilen zeigen, die sie umsetzen. Genau das verlangt
+      die Aufgabenstellung („Selbsterstellter Webserver / Node.js").</p>
     </div>
 
-    <h2>Aufbau der Backend-Dateien</h2>
+    <h2>2. Aufbau der Backend-Dateien</h2>
     <div class="filetree">backend/
-├── server.js          ← Startpunkt: startet den Server, verteilt Anfragen
+├── server.js          ← Startpunkt: baut den Server zusammen (siehe unten)
 ├── db.js              ← die Verbindung zur MySQL-Datenbank
-├── auth.js            ← Passwort-Verschlüsselung + Login-Sitzungen
-├── helpers.js         ← gemeinsame Hilfsfunktionen (Antworten, Prüfungen)
-├── db_setup.sql       ← legt die Datenbank + Beispieldaten an
-└── routes/            ← je Themenbereich eine Datei mit den „Anlaufstellen"
-    ├── jobs.js         ← Stellenanzeigen
-    ├── applications.js ← Bewerbungen
-    ├── companies.js    ← Unternehmen
-    ├── auth.js         ← Registrieren / Login / Logout
-    └── students.js     ← Studenten-Profil, Lebenslauf, Job-Alerts</div>
+├── auth.js            ← Passwort-Verschlüsselung + Login-Sitzungen + Rechte-Prüfer
+├── helpers.js         ← gemeinsame Hilfsfunktionen (einheitliche Antworten, Eingabe-Prüfungen)
+├── db_setup.sql       ← legt Datenbank, Tabellen und Beispieldaten an
+└── routes/            ← die eigentlichen Anlaufstellen, nach Thema sortiert
+    ├── jobs.js         ← Stellenanzeigen (7 Anlaufstellen)
+    ├── applications.js ← Bewerbungen (5)
+    ├── companies.js    ← Unternehmen (5)
+    ├── auth.js         ← Registrieren / Login / Logout / „Wer bin ich?" (4)
+    └── students.js     ← Studenten-Profil, Lebenslauf, Job-Alerts (11)</div>
     <div class="box why">
-      <h4>Warum in so viele Dateien aufteilen?</h4>
-      <p style="margin-bottom:0;">Damit jede Datei nur <strong>ein Thema</strong> behandelt. Sucht man
-      etwas zu Bewerbungen, schaut man in <code>applications.js</code> – nicht in einer riesigen Datei.
-      Das nennt man „Modularität" und macht den Code wartbar.</p>
+      <h4>Warum diese Aufteilung?</h4>
+      <p style="margin-bottom:0;"><strong>Ein Thema = eine Datei.</strong> Wer etwas an Bewerbungen ändern
+      will, öffnet <code>applications.js</code> und ist fertig. Gemeinsames (z. B. „wie sieht eine
+      Fehlermeldung aus?", „ist diese E-Mail gültig?") liegt genau einmal in <code>helpers.js</code>,
+      statt fünfmal kopiert zu werden. Das macht den Code wartbar und verhindert, dass sich Kopien
+      auseinanderentwickeln.</p>
     </div>
 
-    <h2>Was ist eine REST-API? (der Kern der Aufgabe)</h2>
-    <p>Eine <strong>API</strong> ist eine Liste von „Anlaufstellen" (URLs), die man aufrufen kann, um etwas
-      zu tun. <strong>REST</strong> ist eine verbreitete Art, diese Anlaufstellen zu ordnen: Man spricht
-      <em>Dinge</em> (z. B. „Jobs") über eine Adresse an, und die <strong>Art der Anfrage</strong> (die
-      HTTP-Methode) sagt, <em>was</em> man will. Wir nutzen alle fünf Methoden:</p>
-    <table>
-      <tr><th>Methode</th><th>Bedeutung</th><th>Beispiel bei uns</th></tr>
-      <tr><td><span class="method m-get">GET</span></td><td>Daten <strong>lesen</strong></td><td>Alle Jobs anzeigen</td></tr>
-      <tr><td><span class="method m-post">POST</span></td><td><strong>Neu</strong> anlegen</td><td>Eine Bewerbung absenden</td></tr>
-      <tr><td><span class="method m-put">PUT</span></td><td><strong>Komplett</strong> ersetzen</td><td>Einen Job vollständig überarbeiten</td></tr>
-      <tr><td><span class="method m-patch">PATCH</span></td><td><strong>Teilweise</strong> ändern</td><td>Nur den Status einer Bewerbung ändern</td></tr>
-      <tr><td><span class="method m-delete">DELETE</span></td><td><strong>Löschen</strong></td><td>Eine Anzeige entfernen</td></tr>
-    </table>
-    <p>Alle unsere Anlaufstellen beginnen mit <code>/api/v1/…</code>, z. B.
-      <code>GET /api/v1/jobs</code> („gib mir alle Jobs") oder
-      <code>POST /api/v1/applications</code> („nimm diese neue Bewerbung an").</p>
-
-    <div class="box analogy">
-      <p style="margin:0;"><strong>Analogie:</strong> Die REST-API ist wie eine <strong>Speisekarte mit
-      Bestellnummern</strong>. Das Frontend „bestellt" per Nummer (URL + Methode), die Küche (Backend) weiß
-      genau, was zu tun ist, und liefert das Ergebnis zurück.</p>
-    </div>
-
-    <h3>Immer dieselbe Antwort-Form</h3>
-    <p>Jede Antwort ist ein einheitliches Datenpaket (im Format „JSON"):</p>
-    <pre><code>Erfolg:   { "success": true,  "data": ... }
-Fehler:   { "success": false, "error": "Verständliche Meldung" }</code></pre>
-    <p>So weiß das Frontend immer sofort, ob es geklappt hat. Dazu passende „Statuscodes":
-      <code>200</code>/<code>201</code> = OK, <code>400</code> = falsche Eingabe, <code>401</code> = nicht
-      eingeloggt, <code>403</code> = keine Berechtigung, <code>404</code> = nicht gefunden.</p>
-
-    <h2>Was passiert bei einer Anfrage? (Ablauf)</h2>
-    <p>Jede Anlaufstelle arbeitet nach demselben Muster:</p>
-    <ol>
-      <li><strong>Eingaben prüfen:</strong> Sind alle Pflichtfelder da? Ist die E-Mail gültig? Ist der Text
-        nicht zu lang? Wenn nicht → freundliche Fehlermeldung (Code 400).</li>
-      <li><strong>Rechte prüfen</strong> (falls nötig): Ist die Person eingeloggt? Gehört ihr das, was sie
-        ändern will?</li>
-      <li><strong>Mit der Datenbank arbeiten:</strong> lesen oder speichern.</li>
-      <li><strong>Antworten:</strong> Erfolg mit Daten – oder eine klare Fehlermeldung.</li>
+    <h2>3. Was passiert beim Start? (server.js, Schritt für Schritt)</h2>
+    <ol class="steps">
+      <li><strong>Konfiguration laden:</strong> Aus der Datei <code>.env</code> werden Einstellungen gelesen
+        (Port, Datenbank-Zugangsdaten). So stehen Passwörter nie im Quellcode.</li>
+      <li><strong>JSON-Übersetzer einschalten:</strong> <code>express.json()</code> wandelt ankommende
+        JSON-Daten automatisch in JavaScript-Objekte um. Das ist eine sogenannte
+        <strong>Middleware</strong> – ein Zwischenschritt, den <em>jede</em> Anfrage durchläuft, bevor sie
+        bei ihrer Anlaufstelle ankommt (wie die Sicherheitskontrolle am Flughafen: alle müssen durch).</li>
+      <li><strong>Anlaufstellen einhängen:</strong> Die fünf Routen-Dateien werden unter ihren Adressen
+        registriert – <code>/api/v1/jobs</code>, <code>/api/v1/applications</code>,
+        <code>/api/v1/companies</code>, <code>/api/v1/auth</code>, <code>/api/v1/students</code>.</li>
+      <li><strong>Swagger aktivieren:</strong> Unter <code>/api-docs</code> wird die interaktive
+        API-Dokumentation bereitgestellt (Abschnitt 8).</li>
+      <li><strong>Frontend ausliefern:</strong> <code>express.static(frontend/)</code> sorgt dafür, dass
+        derselbe Server auch die HTML/CSS/JS-Dateien ausliefert. Deshalb läuft alles auf
+        <strong>einem Port</strong> – und der Browser hat keine Sicherheitsbedenken wegen fremder Quellen.</li>
+      <li><strong>Auffangnetze spannen:</strong> Unbekannte <code>/api/…</code>-Adressen bekommen eine
+        JSON-Fehlermeldung, unbekannte Seiten die freundliche <code>404.html</code>; ein zentraler
+        Fehler-Handler verhindert, dass z. B. kaputtes JSON den Server abstürzen lässt.</li>
+      <li><strong>Erst Datenbank prüfen, dann öffnen:</strong> Der Server testet die DB-Verbindung
+        (<code>ping</code>). Nur wenn sie steht, öffnet er Port 3000 – sonst bricht er mit einer klaren
+        Meldung ab. <em>Warum?</em> Ein Server ohne Datenbank würde bei jeder Anfrage scheitern; besser
+        sofort und verständlich scheitern als später mysteriös.</li>
     </ol>
-    <div class="box why">
-      <h4>Warum so streng prüfen?</h4>
-      <p style="margin-bottom:0;">Weil man Eingaben aus dem Internet <strong>nie</strong> blind vertrauen
-      darf. Die Aufgabenstellung verlangt ausdrücklich, dass „Fehleingaben verhindert" werden. Deshalb
-      prüfen wir <strong>doppelt</strong>: einmal im Frontend (für schnelles Feedback) und noch einmal im
-      Backend (das ist die verbindliche Kontrolle).</p>
-    </div>
 
-    <h2>Login &amp; Rechte (einfach erklärt)</h2>
-    <ul>
-      <li><strong>Passwörter</strong> werden nie im Klartext gespeichert, sondern „verschlüsselt"
-        (genauer: als sogenannter Hash). Selbst wenn jemand die Datenbank stiehlt, sieht er keine echten
-        Passwörter.</li>
-      <li><strong>Login-Sitzung:</strong> Nach dem Anmelden bekommt der Browser einen geheimen „Stempel"
-        (ein Cookie). Bei jeder weiteren Anfrage schickt er ihn mit, und der Server erkennt daran, wer man
-        ist. Der Stempel ist so geschützt, dass ihn fremdes JavaScript nicht auslesen kann.</li>
-      <li><strong>Zwei Rollen:</strong> „Unternehmen" und „Student" dürfen jeweils nur bestimmte Dinge –
-        und immer nur <em>ihre eigenen</em> Daten. (Ein Unternehmen kann z. B. nur seine eigenen Anzeigen
-        bearbeiten.)</li>
-    </ul>
-    <div class="box why">
-      <h4>Warum ein eigenes Login und kein fertiger Dienst?</h4>
-      <p style="margin-bottom:0;">Die Vorgabe erlaubt keine externen Anbieter. Deshalb haben wir Login und
-      Sitzungen selbst gebaut – nur mit Node.js-Bordmitteln. Das ist zwar mehr Arbeit, aber vollständig
-      nachvollziehbar und ohne fremde Abhängigkeit.</p>
-    </div>
-
-    <h2>Sicherheit gegen Angriffe (kurz)</h2>
+    <h2>4. Die REST-API – das Kernstück</h2>
+    <p>Eine <strong>API</strong> (Programmier-Schnittstelle) ist die Liste der „Bestellnummern", die man beim
+      Server aufrufen kann. <strong>REST</strong> ist die verbreitetste Ordnung dafür, mit zwei Grundideen:</p>
+    <ol>
+      <li><strong>Dinge haben Adressen.</strong> „Alle Jobs" sind <code>/api/v1/jobs</code>, „der Job mit
+        der Nummer 5" ist <code>/api/v1/jobs/5</code>.</li>
+      <li><strong>Die Methode sagt, was man will.</strong> Dieselbe Adresse kann Verschiedenes bedeuten – je
+        nachdem, <em>wie</em> man anfragt:</li>
+    </ol>
     <table>
-      <tr><th>Gefahr</th><th>Unser Schutz</th></tr>
-      <tr><td>SQL-Injection (Datenbank austricksen)</td><td>Eingaben werden nie in Befehle „geklebt", sondern sicher als Parameter übergeben (Prepared Statements)</td></tr>
-      <tr><td>Gestohlene Passwörter</td><td>nur verschlüsselt gespeichert (Hash + Zufalls-Salz)</td></tr>
-      <tr><td>Fremdzugriff auf Daten</td><td>Login-Prüfung + „gehört das der Person überhaupt?"-Prüfung</td></tr>
-      <tr><td>Geheimnisse im Code</td><td>Zugangsdaten stehen nur in einer <code>.env</code>-Datei, nie im Quellcode</td></tr>
+      <tr><th>Methode</th><th>Bedeutung</th><th>Beispiel bei StudyWork</th></tr>
+      <tr><td><span class="method m-get">GET</span></td><td>lesen</td><td><code>GET /api/v1/jobs</code> → Jobliste holen</td></tr>
+      <tr><td><span class="method m-post">POST</span></td><td>neu anlegen</td><td><code>POST /api/v1/applications</code> → Bewerbung einreichen</td></tr>
+      <tr><td><span class="method m-put">PUT</span></td><td>komplett ersetzen</td><td><code>PUT /api/v1/jobs/5</code> → Job 5 vollständig überarbeiten</td></tr>
+      <tr><td><span class="method m-patch">PATCH</span></td><td>teilweise ändern</td><td><code>PATCH /api/v1/applications/3</code> → nur den Status ändern</td></tr>
+      <tr><td><span class="method m-delete">DELETE</span></td><td>löschen</td><td><code>DELETE /api/v1/jobs/5</code> → Anzeige entfernen</td></tr>
+    </table>
+    <p>Unsere API nutzt <strong>alle fünf Methoden</strong> (Pflichtanforderung) über insgesamt
+      <strong>33 Anlaufstellen</strong>.</p>
+
+    <h3>Anatomie einer Adresse</h3>
+    <pre><code>GET /api/v1/jobs?location=Berlin&amp;job_type=Werkstudent
+     └──┬──┘└─┬─┘ └──────────────┬────────────────┘
+      Prefix  Ding        Filter („Query-Parameter")
+
+GET /api/v1/jobs/5
+                 └── Pfad-Parameter: die ID eines bestimmten Jobs</code></pre>
+    <ul>
+      <li><code>/api/v1/</code> – Vorsilbe aller Daten-Anlaufstellen. Das <code>v1</code> ist die
+        Versionsnummer: Käme später eine unverträgliche neue API, könnte sie als <code>v2</code> parallel
+        laufen, ohne Altes zu zerstören.</li>
+      <li><strong>Query-Parameter</strong> (nach dem <code>?</code>) sind optionale Filter.</li>
+      <li><strong>Pfad-Parameter</strong> (im Code als <code>:id</code> notiert) wählen ein konkretes
+        Exemplar aus.</li>
+    </ul>
+
+    <h3>Einheitliche Antworten + Statuscodes</h3>
+    <p>Jede Antwort hat dieselbe Form – das Frontend muss nie raten:</p>
+    <pre><code>Erfolg:  { "success": true,  "data": … }
+Fehler:  { "success": false, "error": "Verständliche Meldung auf Deutsch" }</code></pre>
+    <p>Zusätzlich trägt jede Antwort einen genormten <strong>Statuscode</strong>:</p>
+    <table>
+      <tr><th>Code</th><th>Bedeutung</th><th>Beispiel</th></tr>
+      <tr><td><code>200</code></td><td>OK</td><td>Jobliste erfolgreich geliefert</td></tr>
+      <tr><td><code>201</code></td><td>Created – neu angelegt</td><td>Bewerbung gespeichert</td></tr>
+      <tr><td><code>400</code></td><td>Bad Request – Eingabe fehlerhaft</td><td>E-Mail ungültig, Pflichtfeld leer</td></tr>
+      <tr><td><code>401</code></td><td>Unauthorized – nicht eingeloggt</td><td>Dashboard-Daten ohne Login angefragt</td></tr>
+      <tr><td><code>403</code></td><td>Forbidden – eingeloggt, aber nicht berechtigt</td><td>fremde Stellenanzeige löschen wollen</td></tr>
+      <tr><td><code>404</code></td><td>Not Found</td><td>Job-Nummer existiert nicht</td></tr>
+      <tr><td><code>500</code></td><td>Interner Serverfehler</td><td>unerwarteter Fehler – ohne interne Details nach außen</td></tr>
+    </table>
+    <p>Merkhilfe für 401 vs. 403: <strong>401 = „Wer bist du überhaupt?"</strong> (kein Ausweis),
+      <strong>403 = „Ich kenne dich – aber das darfst du nicht."</strong></p>
+
+    <h2>5. Eine Anfrage im Code – das Lena-Beispiel, Zeile für Zeile</h2>
+    <p>So sieht (leicht gekürzt) die Anlaufstelle aus, die Lenas Bewerbung entgegennimmt:</p>
+    <div class="code-explain">
+      <pre><code>router.post('/', async (req, res) =&gt; {
+  try {
+    const { job_id, student_name, student_email, cover_letter } = req.body;
+
+    // 1) Eingaben prüfen
+    if (!isPositiveInt(job_id))          return sendError(res, 400, 'job_id ungültig.');
+    if (!isNonEmptyString(student_name)) return sendError(res, 400, 'Name fehlt.');
+    if (!isValidEmail(student_email))    return sendError(res, 400, 'E-Mail ungültig.');
+
+    // 2) Fachregeln prüfen (gegen die Datenbank)
+    //    – existiert der Job und ist er „aktiv"?
+    //    – gibt es schon eine Bewerbung mit dieser E-Mail auf diesen Job?
+
+    // 3) Speichern – sicher, mit Platzhaltern (?)
+    const [ergebnis] = await pool.execute(
+      "INSERT INTO applications (job_id, student_name, student_email, cover_letter, status)
+       VALUES (?, ?, ?, ?, 'offen')",
+      [job_id, student_name.trim(), student_email.trim(), cover_letter || null]
+    );
+
+    // 4) Antworten
+    return sendSuccess(res, 201, { id: ergebnis.insertId, … });
+  } catch (fehler) {
+    return sendServerError(res, fehler, 'POST /applications');   // → 500, Server läuft weiter
+  }
+});</code></pre>
+      <div class="lines">
+        <p><strong><code>router.post('/', …)</code></strong> – diese Funktion ist für
+          <code>POST /api/v1/applications</code> zuständig. <code>async</code> erlaubt das Warten auf die
+          Datenbank, ohne den Server zu blockieren – er kann währenddessen andere Anfragen bedienen.</p>
+        <p><strong><code>req.body</code></strong> – die mitgeschickten JSON-Daten, bereits von der
+          Middleware in ein Objekt übersetzt. Wir entnehmen die vier Felder.</p>
+        <p><strong>Schritt 1 – Formprüfung:</strong> Hilfsfunktionen aus <code>helpers.js</code> prüfen
+          Typ und Format. Bei Problemen antwortet <code>sendError</code> sofort mit Code 400 und einer
+          verständlichen Meldung – der Rest der Funktion läuft dann gar nicht mehr.</p>
+        <p><strong>Schritt 2 – Fachregeln:</strong> Dinge, die nur die Datenbank weiß: Gibt es den Job?
+          Nimmt er noch Bewerbungen an (Status „aktiv")? Doppelbewerbung mit derselben E-Mail? So etwas
+          <em>kann</em> das Frontend nicht zuverlässig prüfen – deshalb gehört es hierher.</p>
+        <p><strong>Schritt 3 – Speichern:</strong> <code>pool.execute</code> schickt den SQL-Befehl an
+          MySQL. Die <code>?</code> sind <strong>Platzhalter</strong>: Die Werte werden getrennt vom Befehl
+          übergeben („Prepared Statement") – der zentrale Schutz vor SQL-Injection (Details auf der
+          <a href="datenbank.html">Datenbank-Seite</a>). Der Status wird fest auf <code>'offen'</code>
+          gesetzt – ein Bewerber kann sich also nicht selbst als „angenommen" eintragen.</p>
+        <p><strong>Schritt 4 – Antwort:</strong> Code 201 („neu angelegt") plus die neue Bewerbung inklusive
+          ihrer vergebenen Nummer.</p>
+        <p><strong><code>try/catch</code></strong> – passiert irgendetwas Unerwartetes (z. B. Datenbank kurz
+          weg), fängt <code>catch</code> den Fehler: Antwort 500 mit neutraler Meldung, Details nur ins
+          interne Log. Der Server stürzt nie wegen einer einzelnen Anfrage ab. Dieses Muster – prüfen →
+          Regeln → Datenbank → antworten, alles in try/catch – hat <strong>jede</strong> unserer 33
+          Anlaufstellen.</p>
+      </div>
+    </div>
+
+    <h2>6. Login &amp; Rechte – selbst gebaut, Schritt für Schritt</h2>
+    <p>Die Vorgabe erlaubt keinen externen Login-Dienst. Unser eigenes System (in
+      <code>backend/auth.js</code>) besteht aus drei Bausteinen:</p>
+
+    <h3>a) Passwörter: niemals im Klartext</h3>
+    <ul>
+      <li>Beim Registrieren wird das Passwort durch eine <strong>Hash-Funktion</strong> (scrypt) geschickt –
+        eine mathematische Einbahnstraße: Aus dem Passwort wird ein langer Zeichensalat, aus dem sich das
+        Passwort <em>nicht</em> zurückrechnen lässt. Nur dieser Hash wird gespeichert.</li>
+      <li>Beim Login wird die Eingabe genauso „zerhackt" und mit dem gespeicherten Hash verglichen. Stimmen
+        beide überein, war das Passwort richtig – ohne dass es je gespeichert wurde.</li>
+      <li>Zusätzlich bekommt jedes Passwort ein zufälliges <strong>„Salz"</strong> (Salt) beigemischt:
+        Dadurch ergeben selbst zwei identische Passwörter völlig verschiedene Hashes – vorgefertigte
+        „Nachschlagetabellen" von Angreifern laufen ins Leere. Und scrypt ist mit Absicht
+        <em>langsam</em>, damit massenhaftes Durchprobieren unbezahlbar teuer wird.</li>
+    </ul>
+
+    <h3>b) Sitzungen: eingeloggt bleiben trotz „vergesslichem" HTTP</h3>
+    <p>HTTP hat kein Gedächtnis – jede Anfrage ist für den Server erst einmal ein Fremder. So lösen wir das:</p>
+    <ol class="steps">
+      <li>Nach erfolgreichem Login erzeugt der Server eine lange <strong>Zufallsnummer</strong>
+        (das Sitzungs-„Token") und merkt sich intern: „Diese Nummer gehört zu Lena (Rolle: Student)."</li>
+      <li>Die Nummer wird dem Browser als <strong>Cookie</strong> mitgegeben – ein kleiner Merkzettel, den
+        der Browser bei <em>jeder</em> weiteren Anfrage an diesen Server automatisch mitschickt.</li>
+      <li>Der Server schaut bei jeder Anfrage nach: „Kenne ich dieses Token?" – und weiß damit, wer anfragt
+        und welche Rolle die Person hat.</li>
+      <li>Beim <strong>Logout</strong> wird der Eintrag serverseitig gelöscht und das Cookie geleert – das
+        Token ist ab sofort wertlos.</li>
+    </ol>
+    <p>Zwei Schutzdetails: Das Cookie ist <strong>HttpOnly</strong> (JavaScript im Browser kann es nicht
+      lesen – selbst eingeschleuster Code könnte es nicht stehlen) und <strong>SameSite</strong>
+      (fremde Websites können es nicht für untergeschobene Anfragen missbrauchen).</p>
+    <div class="box info">
+      <p style="margin:0;"><strong>Bewusste Vereinfachung:</strong> Unsere Sitzungen liegen im
+      Arbeitsspeicher des Servers. Nach einem Server-Neustart muss man sich neu anmelden. Für ein
+      Produktivsystem würde man sie in der Datenbank ablegen – für dieses Projekt ist die einfache,
+      transparente Lösung die richtige (und sie ist dokumentiert).</p>
+    </div>
+
+    <h3>c) Rollen und Eigentum: Wer darf was?</h3>
+    <ul>
+      <li>Vor geschützten Anlaufstellen sitzen zwei „Türsteher"-Funktionen (Middleware):
+        <code>requireCompany</code> und <code>requireStudent</code>. Sie prüfen die Sitzung und lassen nur
+        die richtige Rolle durch – sonst Antwort <code>401</code>.</li>
+      <li>Danach folgt die <strong>Eigentums-Prüfung</strong> („Ownership"): Ein Unternehmen darf nur
+        <em>eigene</em> Anzeigen bearbeiten und nur Bewerbungen auf <em>eigene</em> Stellen sehen – sonst
+        <code>403</code>. Bewerbungen enthalten persönliche Daten (Name, E-Mail); ohne diese Prüfung könnte
+        Firma A die Bewerber von Firma B auslesen.</li>
+      <li>Öffentlich bleiben nur die Dinge, die öffentlich sein <em>sollen</em>: Jobs ansehen, Unternehmen
+        ansehen, sich bewerben (auch ohne Konto), eine Anzeige melden.</li>
+    </ul>
+
+    <h2>7. Sicherheit im Überblick</h2>
+    <table>
+      <tr><th>Gefahr</th><th>Was das ist</th><th>Unser Schutz</th></tr>
+      <tr><td>SQL-Injection</td><td>Angreifer schreibt Datenbank-Befehle in Eingabefelder</td><td>ausschließlich Prepared Statements (Werte als Parameter, nie in Befehle geklebt)</td></tr>
+      <tr><td>Passwort-Diebstahl</td><td>Datenbank wird kopiert, Passwörter missbraucht</td><td>nur scrypt-Hashes mit Salt gespeichert – Klartext existiert nirgends</td></tr>
+      <tr><td>Ausspähen von E-Mails beim Login</td><td>„Gibt es ein Konto mit dieser Adresse?"</td><td>identische Fehlermeldung, egal ob E-Mail oder Passwort falsch war</td></tr>
+      <tr><td>Token-Diebstahl per Schadcode</td><td>eingeschleustes JavaScript liest das Login-Cookie</td><td>HttpOnly-Cookie – für JavaScript unsichtbar</td></tr>
+      <tr><td>Fremde Daten lesen/ändern</td><td>Firma A greift auf Daten von Firma B zu</td><td>Rollen-Middleware + Eigentums-Prüfung an jeder kritischen Stelle</td></tr>
+      <tr><td>Geheimnisse im Code</td><td>Passwörter landen im Git-Verlauf</td><td>Zugangsdaten nur in <code>.env</code>; die Datei ist vom Hochladen ausgeschlossen</td></tr>
+      <tr><td>Kaputte/überlange Eingaben</td><td>Absturz oder kryptische Fehler</td><td>Längen- und Formatprüfung überall → saubere 400-Meldung; try/catch überall → kein Absturz</td></tr>
     </table>
 
-    <h2>Swagger: die interaktive API-Doku</h2>
-    <p>Wenn der Server läuft, gibt es unter <strong><code>http://localhost:3000/api-docs</code></strong>
-      eine automatisch erzeugte, anklickbare Übersicht <em>aller</em> Anlaufstellen. Man kann dort jede
-      Anfrage direkt ausprobieren („Try it out").</p>
+    <h2>8. Swagger – die interaktive API-Dokumentation</h2>
+    <p>Läuft der Server, zeigt <strong><code>http://localhost:3000/api-docs</code></strong> eine
+      automatisch erzeugte, klickbare Übersicht <em>aller 33 Anlaufstellen</em> – nach Themen gruppiert,
+      mit Parametern, Beispielwerten und möglichen Antworten. Über „Try it out" kann man jede Anfrage direkt
+      im Browser abschicken und die echte Antwort sehen.</p>
+    <p><strong>Wie es funktioniert:</strong> Über jeder Anlaufstelle im Code steht ein kurzer, formalisierter
+      Kommentar (<code>@swagger …</code>). Zwei Zusatzpakete (<code>swagger-jsdoc</code> +
+      <code>swagger-ui-express</code>) sammeln diese Kommentare beim Start ein und bauen daraus die
+      Oberfläche.</p>
     <div class="box why">
       <h4>Warum Swagger?</h4>
-      <p style="margin-bottom:0;">Damit man die API <strong>sehen und testen</strong> kann, ohne den Code
-      zu lesen – praktisch für die Präsentation und für Teammitglieder. Sie entsteht aus kurzen Kommentaren,
-      die direkt über jeder Anlaufstelle im Code stehen, und ist bei uns <strong>vollständig</strong> (alle
-      Methoden dokumentiert). Das war zusätzlich ein optionales Bonus-Kriterium der Aufgabe.</p>
+      <p style="margin-bottom:0;">Man kann die API <strong>verstehen und testen, ohne Code zu lesen</strong> –
+      ideal für Teammitglieder, für die Präsentation und zum Debuggen. Weil die Doku <em>im Code neben der
+      Route</em> steht, bleibt sie eher aktuell, als wenn sie in einem getrennten Dokument leben würde.
+      (Sie war zudem ein optionales Bonus-Kriterium der Aufgabe.)</p>
+    </div>
+
+    <h2>9. Glossar</h2>
+    <table>
+      <tr><th>Begriff</th><th>Bedeutung</th></tr>
+      <tr><td>Port</td><td>„Zimmernummer" eines Programms auf einem Computer; unser Server: 3000.</td></tr>
+      <tr><td>Route / Endpunkt / Anlaufstelle</td><td>Kombination aus Methode + Adresse und dem Code, der sie bearbeitet.</td></tr>
+      <tr><td>Middleware</td><td>Zwischenschritt, den Anfragen vor der eigentlichen Bearbeitung durchlaufen (z. B. JSON-Übersetzer, Login-Türsteher).</td></tr>
+      <tr><td>Request / Response</td><td>Anfrage (vom Browser) / Antwort (vom Server).</td></tr>
+      <tr><td>JSON</td><td>Textformat für Daten: <code>{"schlüssel": "wert"}</code>.</td></tr>
+      <tr><td>Hash / Salt</td><td>Einbahnstraßen-„Fingerabdruck" eines Passworts / zufällige Beimischung, die jeden Hash einzigartig macht.</td></tr>
+      <tr><td>Cookie</td><td>Kleiner Merkzettel, den der Server dem Browser gibt und den der Browser automatisch wieder mitschickt.</td></tr>
+      <tr><td>Session / Token</td><td>Serverseitiger „Eingeloggt"-Eintrag / die geheime Zufallsnummer, die im Cookie darauf verweist.</td></tr>
+      <tr><td>Prepared Statement</td><td>Datenbank-Befehl mit Platzhaltern; Werte werden getrennt übergeben → Injection-Schutz.</td></tr>
+      <tr><td><code>.env</code></td><td>Lokale Konfigurationsdatei für Geheimnisse (DB-Passwort etc.); wird nie mit hochgeladen.</td></tr>
+    </table>
+
+    <h2>10. Typische Fragen – kurze Antworten</h2>
+    <dl class="qa">
+      <dt>Warum Express und nicht „rohes" Node.js?</dt>
+      <dd>Express spart nur den Boilerplate-Teil (HTTP zerlegen, Pfade zuordnen). Die gesamte Logik ist
+        handgeschrieben – der Lerneffekt bleibt, die Lesbarkeit steigt.</dd>
+      <dt>Was passiert bei einer Anfrage an eine Adresse, die es nicht gibt?</dt>
+      <dd>API-Pfade → JSON-Fehler mit 404; alles andere → unsere freundliche 404-Seite. Nichts stürzt ab.</dd>
+      <dt>Warum prüft der Server Dinge, die das Frontend schon geprüft hat?</dt>
+      <dd>Weil man Anfragen auch <em>am Frontend vorbei</em> schicken kann (z. B. mit curl oder Swagger).
+        Verbindlich ist nur, was der Server prüft.</dd>
+      <dt>Warum wird nach einem Server-Neustart jeder ausgeloggt?</dt>
+      <dd>Die Sitzungen liegen bewusst im Arbeitsspeicher (einfach + transparent). Ein Neustart leert ihn.
+        Produktiv würde man Sessions in der Datenbank halten.</dd>
+      <dt>Kann ein Bewerber seinen Bewerbungs-Status selbst auf „angenommen" setzen?</dt>
+      <dd>Nein. Beim Anlegen erzwingt der Server Status „offen"; ändern kann ihn nur das eingeloggte
+        Unternehmen, dem die Stelle gehört (PATCH + Rechteprüfung).</dd>
+      <dt>Woher weiß der Server, dass die Anfrage von einem eingeloggten Unternehmen kommt?</dt>
+      <dd>Am mitgeschickten Sitzungs-Cookie: Token nachschlagen → Nutzer + Rolle bekannt → Türsteher-Middleware
+        entscheidet.</dd>
+    </dl>
+
+    <div class="talk">
+      <h3>🗣️ So erklärst du das Backend in 5 Sätzen weiter</h3>
+      <ol>
+        <li>Das Backend ist unser selbst geschriebener Server (Node.js + Express), der auf Port 3000 läuft,
+          alle Anfragen entgegennimmt und zusätzlich die Web-Seiten selbst ausliefert.</li>
+        <li>Er stellt eine REST-API bereit: Dinge haben Adressen (<code>/api/v1/jobs</code> …), und die
+          HTTP-Methode (GET/POST/PUT/PATCH/DELETE) sagt, ob gelesen, angelegt, geändert oder gelöscht wird –
+          insgesamt 33 Anlaufstellen, Antworten immer als einheitliches JSON mit Statuscode.</li>
+        <li>Jede Anlaufstelle arbeitet nach demselben Muster: Eingaben prüfen → Fachregeln prüfen →
+          Datenbank-Zugriff per Prepared Statement → antworten; alles in try/catch, damit nichts den Server
+          abstürzen lässt.</li>
+        <li>Login ist selbst gebaut: Passwörter nur als scrypt-Hash mit Salt, Sitzungen über ein
+          HttpOnly-Cookie, Türsteher-Middleware für die Rollen und Eigentums-Prüfungen, damit jeder nur an
+          seine eigenen Daten kommt.</li>
+        <li>Unter <code>/api-docs</code> dokumentiert Swagger alle Anlaufstellen interaktiv – erzeugt aus
+          Kommentaren direkt im Code.</li>
+      </ol>
     </div>
 
     <div class="box info">
-      <p style="margin:0;">➡️ Wie die Daten gespeichert sind und zusammenhängen, steht in der
-      <a href="datenbank.html">Datenbank-Erklärung</a> (inkl. der UML-Beschreibung).</p>
+      <p style="margin:0;">➡️ Weiter zur <a href="datenbank.html">Datenbank</a> (wo diese Daten liegen und
+      wie sie zusammenhängen – inkl. UML) oder zurück zum <a href="frontend.html">Frontend</a>.</p>
     </div>
   </main>
 
-  <footer>StudyWork – Backend-Erklärung · Quellen: <code>backend/server.js</code>, <code>backend/routes/*.js</code>, <code>backend/auth.js</code>.</footer>
+  <footer>StudyWork – Backend-Erklärung · Quellen: <code>backend/server.js</code>,
+    <code>backend/routes/*.js</code>, <code>backend/auth.js</code>, <code>backend/helpers.js</code>.</footer>
 </body>
 </html>

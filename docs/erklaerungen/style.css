@@ -97,6 +97,53 @@ li { margin: 0.3em 0; }
 .m-get { color: #1d4ed8; } .m-post { color: #03543f; } .m-put { color: #92400e; }
 .m-patch { color: #5b21b6; } .m-delete { color: #9b1c1c; }
 
+/* Lernziele am Seitenanfang */
+.goals {
+  border: 2px solid var(--primary); border-radius: var(--radius);
+  background: #eef7f2; padding: 14px 18px; margin: 1.3em 0;
+}
+.goals h4 { margin: 0 0 6px; }
+.goals ul { margin: 0; }
+
+/* Nummerierte Ablauf-Schritte */
+ol.steps { counter-reset: step; list-style: none; padding-left: 0; }
+ol.steps > li {
+  counter-increment: step;
+  position: relative; padding: 10px 14px 10px 52px; margin: 10px 0;
+  background: var(--surface); border: 2px solid var(--border); border-radius: 10px;
+}
+ol.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 12px; top: 10px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--ink); color: var(--accent);
+  font-weight: 700; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Frage/Antwort-Liste (typische Fragen) */
+.qa dt { font-weight: 700; margin-top: 1em; }
+.qa dd { margin: 0.25em 0 0 0; color: var(--ink); }
+
+/* "So erklärst du es weiter"-Kasten */
+.talk {
+  border: 2px dashed var(--ink); border-radius: var(--radius);
+  background: #fffef7; padding: 16px 20px; margin: 1.6em 0;
+}
+.talk h3 { margin-top: 0; }
+.talk ol { margin-bottom: 0; }
+
+/* Code-Erklärzeilen: Snippet + darunter Erläuterung */
+.code-explain { margin: 1em 0; }
+.code-explain pre { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.code-explain .lines {
+  border: 2px solid var(--border); border-top: 0;
+  border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius);
+  background: var(--surface); padding: 10px 16px; font-size: 0.9rem;
+}
+.code-explain .lines p { margin: 0.45em 0; }
+.code-explain .lines code { white-space: nowrap; }
+
 footer {
   max-width: 900px; margin: 0 auto; padding: 24px 22px 60px;
   color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--border);

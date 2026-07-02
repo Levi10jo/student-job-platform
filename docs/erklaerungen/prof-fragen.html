@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyWork – Mögliche Prof-Fragen &amp; Antworten</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="docnav">
+    <span class="brand">Study<span>Work</span> · Erklärungen</span>
+    <a href="index.html">Übersicht</a>
+    <a href="frontend.html">Frontend</a>
+    <a href="backend.html">Backend</a>
+    <a href="datenbank.html">Datenbank</a>
+    <a href="prof-fragen.html" class="active">Prof-Fragen</a>
+  </nav>
+
+  <main>
+    <h1>Mögliche Prof-Fragen – mit Antworten</h1>
+    <p class="subtitle">Fragen, die in der Präsentation realistisch kommen können – jeweils mit einer kurzen,
+      korrekten Antwort und dem Ort im Code, auf den man zeigen kann.</p>
+
+    <div class="box info">
+      <p style="margin:0;"><strong>Tipp fürs Antworten:</strong> Kurz antworten (2–4 Sätze), dann anbieten,
+      es im Code oder live in der App zu zeigen. Die Datei-Angaben in den Antworten sind genau dafür da.</p>
+    </div>
+
+    <h2>A. Architektur &amp; Zusammenspiel</h2>
+    <dl class="qa">
+      <dt>„Woher kommen die Job-Angebote auf der Seite? Werden die aus der Datenbank geholt?"</dt>
+      <dd>Ja. Beim Öffnen der Jobsuche schickt das JavaScript der Seite eine Anfrage
+        <code>GET /api/v1/jobs?status=aktiv</code> an unseren Server. Der Server führt daraufhin eine
+        SQL-Abfrage auf die MySQL-Tabelle <code>jobs</code> aus (mit JOIN auf <code>companies</code>, um den
+        Firmennamen mitzuliefern) und schickt das Ergebnis als JSON zurück. Das Frontend baut daraus die
+        Job-Kacheln. <em>Zeigen:</em> Frontend <code>frontend/js/jobs.js</code> (Aufruf
+        <code>API.jobs.list</code>), Backend <code>backend/routes/jobs.js</code> (die SELECT-Abfrage).</dd>
+
+      <dt>„Wie kommunizieren Frontend und Backend genau?"</dt>
+      <dd>Über HTTP-Anfragen mit JSON-Daten – das Frontend nutzt die Browser-Funktion <code>fetch</code>.
+        Alle Aufrufe laufen zentral über <code>frontend/js/api.js</code>; die Antworten haben immer dasselbe
+        Format <code>{"success": true/false, "data"/"error": …}</code>. Der Browser redet nie direkt mit der
+        Datenbank – nur der Server tut das.</dd>
+
+      <dt>„Was passiert Schritt für Schritt, wenn ich auf ‚Bewerbung absenden' klicke?"</dt>
+      <dd>1) Frontend prüft die Felder (Pflicht, E-Mail-Format). 2) <code>POST /api/v1/applications</code>
+        mit den Daten als JSON. 3) Backend prüft erneut + Fachregeln (Job existiert? aktiv? schon beworben?).
+        4) <code>INSERT</code> in die Tabelle <code>applications</code> per Prepared Statement. 5) Antwort
+        201 mit dem neuen Datensatz. 6) Frontend zeigt die Bestätigung. <em>Zeigen:</em>
+        <code>frontend/js/jobs.js</code> (Formular-Handler) und <code>backend/routes/applications.js</code>
+        (POST-Route).</dd>
+
+      <dt>„Warum laufen Frontend und API auf demselben Port?"</dt>
+      <dd>Express liefert den <code>frontend/</code>-Ordner per <code>express.static()</code> mit aus
+        (<code>backend/server.js</code>). Ein Ursprung für Seiten und Daten heißt: keine CORS-Probleme im
+        Browser und nur ein Startbefehl für die ganze App.</dd>
+
+      <dt>„Kann man die API auch ohne das Frontend benutzen?"</dt>
+      <dd>Ja – z. B. mit <code>curl</code> oder direkt über die Swagger-Oberfläche unter
+        <code>http://localhost:3000/api-docs</code> („Try it out"). Genau das zeigt, dass Frontend und
+        Backend sauber getrennt sind.</dd>
+    </dl>
+
+    <h2>B. Frontend</h2>
+    <dl class="qa">
+      <dt>„Welches Framework habt ihr im Frontend benutzt?"</dt>
+      <dd>Keins – bewusst reines HTML, CSS und Vanilla-JavaScript, wie in der Aufgabenstellung vorgesehen.
+        Bei dieser Projektgröße bleibt so jeder Schritt nachvollziehbar; gemeinsame Logik (API-Aufrufe,
+        Navigation, Meldungen) haben wir selbst in <code>frontend/js/api.js</code> zentralisiert.</dd>
+
+      <dt>„Wie funktioniert die Live-Suche?"</dt>
+      <dd>Auf das Suchfeld ist ein <code>input</code>-Event-Listener registriert. Mit „Debounce" (ca. 300 ms
+        Tipp-Pause) wird dann neu bei der API angefragt und die Liste neu gerendert. Die Filter werden
+        zusätzlich in die URL geschrieben, damit Such-Links teilbar sind.
+        <em>Zeigen:</em> <code>frontend/js/jobs.js</code>.</dd>
+
+      <dt>„Wie stellt ihr sicher, dass eingegebene Texte keinen Schaden anrichten (XSS)?"</dt>
+      <dd>Jeder Text, der von Nutzern/aus der DB kommt, läuft vor dem Einfügen ins HTML durch
+        <code>escapeHtml()</code> (in <code>api.js</code>): Zeichen wie <code>&lt;</code> werden in
+        harmlose Entities umgewandelt – der Browser zeigt sie an, statt sie als Code auszuführen.</dd>
+
+      <dt>„Wie habt ihr Responsive Design umgesetzt?"</dt>
+      <dd>Mit CSS Media Queries in <code>frontend/css/style.css</code>: Unter bestimmten Breiten (≈880 px,
+        ≈560 px) ändern sich Raster und Navigation. Getestet für Handy (~375 px), Tablet (768 px) und
+        Desktop (1280 px+).</dd>
+
+      <dt>„Wie funktioniert der Dark-Mode?"</dt>
+      <dd>Der Umschalter setzt <code>data-theme="dark"</code> am <code>&lt;html&gt;</code>-Element; das CSS
+        tauscht dann nur die Farb-Variablen. Die Wahl liegt im <code>localStorage</code> und wird beim
+        Laden vor dem Rendern gesetzt (kein Aufblitzen).</dd>
+
+      <dt>„Woher weiß die Seite, ob jemand eingeloggt ist?"</dt>
+      <dd>Beim Laden fragt jede Seite <code>GET /api/v1/auth/me</code>. Der Server erkennt den Nutzer am
+        Session-Cookie und antwortet mit Name/Rolle oder <code>null</code>; danach passt das Frontend
+        Navigation und Inhalte an. Das Cookie selbst kann das JavaScript nicht lesen (HttpOnly).</dd>
+    </dl>
+
+    <h2>C. Backend &amp; REST</h2>
+    <dl class="qa">
+      <dt>„Zeigen Sie mir, wo ein Request verarbeitet wird."</dt>
+      <dd>Startpunkt <code>backend/server.js</code>: Middleware (<code>express.json</code>) → Router-Mounts
+        (<code>/api/v1/jobs</code> → <code>routes/jobs.js</code> usw.). In der Routen-Datei steht pro
+        Endpunkt eine Handler-Funktion: validieren → ggf. Rechte prüfen → SQL per
+        <code>pool.execute</code> → einheitliche JSON-Antwort. Alles in <code>try/catch</code>.</dd>
+
+      <dt>„Nutzt ihr wirklich alle fünf HTTP-Methoden? Wofür?"</dt>
+      <dd>Ja: GET (Jobs/Bewerbungen lesen), POST (Bewerbung/Job/Konto anlegen), PUT (Job oder Profil
+        vollständig aktualisieren), PATCH (nur Status ändern, z. B. Bewerbung „gesehen"), DELETE (Job,
+        Bewerbung, Konto löschen). Insgesamt 33 Endpunkte – alle in Swagger dokumentiert.</dd>
+
+      <dt>„Was ist der Unterschied zwischen PUT und PATCH – und wo sieht man das bei euch?"</dt>
+      <dd>PUT ersetzt die Ressource komplett (alle Felder Pflicht) – z. B. „Job bearbeiten" im Dashboard.
+        PATCH ändert nur einzelne Felder – z. B. der Schnell-Statuswechsel einer Anzeige oder der
+        Bewerbungsstatus. <em>Zeigen:</em> <code>backend/routes/jobs.js</code> (beide nebeneinander).</dd>
+
+      <dt>„Was bedeutet das /api/v1 in den Adressen?"</dt>
+      <dd><code>/api</code> trennt Daten-Endpunkte von den Webseiten; <code>v1</code> ist die API-Version.
+        Käme später eine inkompatible Version, könnte sie als <code>v2</code> parallel laufen, ohne alte
+        Clients zu brechen.</dd>
+
+      <dt>„Welche Statuscodes gebt ihr zurück und wann?"</dt>
+      <dd>200 OK (gelesen/geändert), 201 Created (neu angelegt), 400 (Eingabe ungültig), 401 (nicht
+        eingeloggt), 403 (eingeloggt, aber nicht berechtigt – z. B. fremder Job), 404 (nicht gefunden),
+        500 (unerwarteter Fehler, ohne interne Details). Merkhilfe: 401 = „Wer bist du?", 403 = „Das darfst
+        du nicht."</dd>
+
+      <dt>„Wie verhindert ihr, dass sich jemand zweimal auf dieselbe Stelle bewirbt?"</dt>
+      <dd>Serverseitig: Vor dem INSERT prüft die POST-Route per SELECT, ob es zu diesem Job schon eine
+        Bewerbung mit derselben E-Mail gibt → dann 400 mit klarer Meldung. Zusätzlich zeigt das Frontend
+        eingeloggten Studenten „Bereits beworben" statt des Formulars – aber verbindlich ist die
+        Server-Prüfung.</dd>
+
+      <dt>„Kann ein Bewerber seinen Status selbst auf ‚angenommen' setzen?"</dt>
+      <dd>Nein. Beim Anlegen erzwingt der Server Status <code>offen</code> (fest im INSERT). Ändern kann ihn
+        nur via PATCH ein eingeloggtes Unternehmen – und nur für Bewerbungen auf die eigenen Stellen
+        (Ownership-Prüfung).</dd>
+
+      <dt>„Was passiert, wenn die Datenbank beim Start nicht läuft?"</dt>
+      <dd>Der Server testet die Verbindung vor dem Portöffnen (<code>testConnection()</code> in
+        <code>db.js</code>) und bricht mit einer klaren deutschen Fehlermeldung ab, statt später bei jeder
+        Anfrage kryptisch zu scheitern.</dd>
+    </dl>
+
+    <h2>D. Login &amp; Sicherheit</h2>
+    <dl class="qa">
+      <dt>„Wo und wie speichert ihr Passwörter?"</dt>
+      <dd>Nie im Klartext. In der DB steht nur ein <strong>scrypt-Hash mit zufälligem Salt</strong>
+        (Spalte <code>password_hash</code>, Format <code>scrypt:salt:hash</code>). Beim Login wird die
+        Eingabe gleich gehasht und zeitkonstant verglichen (<code>timingSafeEqual</code>).
+        <em>Zeigen:</em> <code>backend/auth.js</code>.</dd>
+
+      <dt>„Wie funktioniert die Session? Woher weiß der Server, wer ich bin?"</dt>
+      <dd>Nach dem Login erzeugt der Server ein 32-Byte-Zufalls-Token, merkt es sich serverseitig
+        (Token → Nutzer/Rolle) und gibt es dem Browser als <strong>HttpOnly-Cookie</strong>
+        (<code>sw_session</code>). Der Browser schickt es automatisch mit; der Server schlägt es nach.
+        HttpOnly heißt: JavaScript kann das Cookie nicht lesen → kein Token-Diebstahl per XSS.</dd>
+
+      <dt>„Warum ist man nach einem Server-Neustart ausgeloggt?"</dt>
+      <dd>Die Sessions liegen bewusst im Arbeitsspeicher (einfach + transparent, dokumentierte
+        MVP-Vereinfachung). Produktiv würde man sie in der DB oder z. B. Redis halten – das wäre an genau
+        einer Stelle (<code>auth.js</code>) austauschbar.</dd>
+
+      <dt>„Was ist SQL-Injection und wie schützt ihr euch?"</dt>
+      <dd>Ein Angriff, bei dem jemand SQL-Befehle in Eingabefelder schreibt (z. B.
+        <code>'; DELETE FROM jobs; --</code>). Wir kleben Eingaben nie in SQL-Strings, sondern nutzen
+        <strong>ausschließlich Prepared Statements</strong>: <code>pool.execute('… WHERE id = ?', [wert])</code>.
+        Die DB behandelt Eingaben dadurch strikt als Daten, nie als Befehl.</dd>
+
+      <dt>„Wer darf Bewerberdaten sehen?"</dt>
+      <dd>Nur das Unternehmen, dem die zugehörige Stelle gehört – geprüft per Login-Middleware
+        (<code>requireCompany</code>) plus Ownership-Check in jeder Route. Ohne Login: 401; fremde Daten:
+        403. Bewerber-Profile unterliegen zusätzlich der vom Studenten gewählten Sichtbarkeit.</dd>
+
+      <dt>„Wo liegen eure Zugangsdaten/Secrets?"</dt>
+      <dd>Nur in der lokalen <code>.env</code>-Datei, die per <code>.gitignore</code> vom Repository
+        ausgeschlossen ist. Im Repo liegt nur die Vorlage <code>.env.example</code> mit Platzhaltern.</dd>
+    </dl>
+
+    <h2>E. Datenbank</h2>
+    <dl class="qa">
+      <dt>„Wie sieht euer Datenmodell aus?"</dt>
+      <dd>6 Tabellen: <code>companies</code>, <code>students</code>, <code>jobs</code>,
+        <code>applications</code>, <code>job_reports</code>, <code>job_alerts</code>. Kernbeziehungen
+        (je 1 : 0..*): Unternehmen→Jobs, Job→Bewerbungen, Job→Meldungen, Student→Alerts. Bewerbungen sind
+        nur „weich" (über die E-Mail) mit Studenten verknüpft, weil Bewerben ohne Konto möglich ist.
+        <em>Details/UML:</em> Seite <a href="datenbank.html">Datenbank</a>.</dd>
+
+      <dt>„Warum hat die Bewerbung keinen Fremdschlüssel auf den Studenten?"</dt>
+      <dd>Designentscheidung: Gast-Bewerbungen sollen möglich sein (niedrige Hürde). Name/E-Mail werden als
+        Text gespeichert; hat der Bewerber ein Konto, ordnet das Backend es über die identische E-Mail zu
+        (z. B. für „Meine Bewerbungen" und den Profil-Link im Dashboard).</dd>
+
+      <dt>„Was passiert in der DB, wenn ein Unternehmen sein Konto löscht?"</dt>
+      <dd><code>ON DELETE CASCADE</code>-Kettenreaktion: seine Jobs werden gelöscht → dadurch automatisch
+        deren Bewerbungen und Meldungen. Keine verwaisten Daten. (Beim Studenten löscht das Backend dessen
+        Bewerbungen zusätzlich per E-Mail-Abgleich, da dort bewusst kein FK existiert.)</dd>
+
+      <dt>„Wie ist die Datenbank ans Backend angebunden?"</dt>
+      <dd>Über das Paket <code>mysql2</code> mit einem <strong>Connection Pool</strong> (bis 10 wiederverwendete
+        Verbindungen) in <code>backend/db.js</code>; Zugangsdaten aus <code>.env</code>; alle Abfragen als
+        Prepared Statements über <code>pool.execute()</code>.</dd>
+
+      <dt>„Woher kommen die Beispieldaten? Wie setze ich die DB auf?"</dt>
+      <dd>Aus <code>backend/db_setup.sql</code> – ein idempotentes Skript (löscht + erstellt Tabellen und
+        füllt Seed-Daten: 6 Unternehmen, 20 Jobs, 1 Demo-Studentin, 5 Bewerbungen, 1 Alert). Einmal per
+        <code>mysql -u root &lt; db_setup.sql</code> ausführen; erneutes Ausführen setzt alles zurück.</dd>
+
+      <dt>„Kann in der Status-Spalte beliebiger Text stehen?"</dt>
+      <dd>Nein – <code>ENUM</code>-Spalten (Job-Status, Bewerbungs-Status, Job-Typ) erlauben nur die
+        definierten Werte; die DB selbst lehnt alles andere ab. Zusätzlich validiert das Backend vorher.</dd>
+
+      <dt>„Wie bleibt die Suche bei vielen Jobs schnell?"</dt>
+      <dd>Indizes auf den Filter-Spalten (<code>company_id</code>, <code>job_type</code>,
+        <code>status</code>, <code>job_id</code>, <code>student_id</code>) – wie ein Stichwortverzeichnis
+        springt die DB direkt zu den passenden Zeilen.</dd>
+
+      <dt>„Wo liegt der hochgeladene Lebenslauf?"</dt>
+      <dd>Als base64-kodierte PDF in der Spalte <code>students.cv_data</code> (max. 3 MB, Magic-Bytes-Prüfung
+        auf echtes PDF). Ausgeliefert wird er nur über eine zugriffsgeschützte Route
+        (<code>GET /api/v1/students/:id/cv</code>) – dieselben Sichtbarkeitsregeln wie beim Profil. Für die
+        Demo bewusst ohne extra Dateiserver.</dd>
+    </dl>
+
+    <h2>F. Meta-Fragen zum Projekt</h2>
+    <dl class="qa">
+      <dt>„Wie habt ihr getestet?"</dt>
+      <dd>Systematisch über die API (mit <code>curl</code>/Swagger: alle Methoden, Fehlerfälle wie 400/401/403/404,
+        Schutzregeln wie Doppelbewerbung und Fremdzugriff) und im Browser entlang der Nutzer-Abläufe
+        (Student-Weg, Unternehmens-Weg, responsive, Dark-Mode) – jeweils mit Kontrolle der Browser-Konsole.</dd>
+
+      <dt>„Was würdet ihr als Nächstes verbessern?"</dt>
+      <dd>Ehrlich benennen: Sessions in die DB (Neustart-fest), echte E-Mail-Zustellung für Job-Alerts
+        (aktuell simuliert), Passwort-zurücksetzen, Moderations-Ansicht für gemeldete Anzeigen,
+        Pagination bei sehr vielen Jobs, automatisierte Tests (z. B. Jest/Supertest).</dd>
+
+      <dt>„Ist die Seite öffentlich erreichbar?"</dt>
+      <dd>Nein, bewusst lokal (<code>localhost:3000</code>) – ein Deployment war nicht Teil der Aufgabe.
+        Jeder kann sie aber per README in wenigen Minuten lokal starten; die Architektur wäre unverändert
+        deploybar.</dd>
+    </dl>
+
+    <div class="box why">
+      <h4>Generalprobe-Empfehlung</h4>
+      <p style="margin-bottom:0;">Jede:r übernimmt die Fragen des eigenen Bereichs (A/F alle gemeinsam) und
+      übt die Antwort einmal laut <em>mit</em> anschließendem Zeigen der Stelle im Code oder in der App.
+      Die Kombination „kurze Antwort + zeigen" wirkt am souveränsten.</p>
+    </div>
+  </main>
+
+  <footer>StudyWork – Fragenkatalog zur Präsentation · passend zum Code-Stand des Projekts (sjp).</footer>
+</body>
+</html>

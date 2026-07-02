@@ -13,82 +13,175 @@
     <a href="frontend.html">Frontend</a>
     <a href="backend.html">Backend</a>
     <a href="datenbank.html">Datenbank</a>
+    <a href="prof-fragen.html">Prof-Fragen</a>
   </nav>
 
   <main>
     <h1>StudyWork – wie funktioniert das Ganze?</h1>
-    <p class="subtitle">Diese Seiten erklären in einfachen Worten, wie unsere Web-App gebaut ist und
-      <strong>warum</strong> wir es so gemacht haben. Auch ohne Programmier-Vorwissen verständlich.</p>
+    <p class="subtitle">Diese Seiten erklären unser Projekt so, dass es auch ohne jedes Vorwissen
+      verständlich ist – und so gründlich, dass du es danach selbst jemandem erklären kannst.</p>
 
-    <div class="box key">
-      <h3>Was ist StudyWork?</h3>
-      <p style="margin-bottom:0;"><strong>StudyWork</strong> ist eine Job-Plattform für Studenten.
-      <strong>Unternehmen</strong> schreiben Stellen aus, <strong>Studenten</strong> suchen Jobs und bewerben
-      sich. Technisch besteht die App aus drei Teilen, die zusammenarbeiten.</p>
+    <div class="goals">
+      <h4>🎯 Nach dieser Seite weißt du:</h4>
+      <ul>
+        <li>was StudyWork ist und was eine „Web-App" überhaupt bedeutet,</li>
+        <li>was die drei Teile Frontend, Backend und Datenbank jeweils tun,</li>
+        <li>wie eine Aktion (z. B. „Bewerbung absenden") durch alle drei Teile wandert,</li>
+        <li>was Begriffe wie <em>Server</em>, <em>localhost</em>, <em>HTTP</em> und <em>Port</em> bedeuten.</li>
+      </ul>
     </div>
 
-    <h2>Die drei Teile – mit einer Restaurant-Analogie</h2>
-    <p>Stell dir die App wie ein Restaurant vor. Dann sind die drei Teile:</p>
+    <h2>1. Was ist StudyWork?</h2>
+    <p><strong>StudyWork</strong> ist eine Job-Plattform für Studenten – eine Website, auf der zwei Gruppen
+      etwas tun können:</p>
+    <ul>
+      <li><strong>Unternehmen</strong> registrieren sich, schreiben Stellenanzeigen aus und verwalten die
+        eingehenden Bewerbungen (ansehen, Status ändern, Bewerberprofil öffnen).</li>
+      <li><strong>Studenten</strong> suchen und filtern Jobs, bewerben sich (mit oder ohne Konto), pflegen
+        ein Profil mit Lebenslauf und können Suchen als „Job-Alert" speichern.</li>
+    </ul>
+    <p>„Web-App" heißt: Es ist keine Datei, die man installiert, sondern eine <strong>Anwendung, die im
+      Browser läuft</strong> (Chrome, Safari, Firefox …). Man tippt eine Adresse ein und benutzt sie wie
+      eine normale Website – nur dass sie auf Eingaben reagiert, Daten speichert und für jeden Nutzer etwas
+      anderes anzeigt.</p>
+
+    <h2>2. Die drei Teile – mit einer Restaurant-Analogie</h2>
+    <p>Fast jede moderne Web-App ist in drei Schichten aufgebaut. Man versteht sie am schnellsten über ein
+      Restaurant:</p>
     <div class="cards">
       <div class="card">
         <h3>🍽️ Frontend = der Gastraum</h3>
-        <p>Alles, was der Gast <strong>sieht und anfasst</strong>: Speisekarte, Tische, Bestellzettel.
-        Bei uns: die Web-Seiten im Browser (Buttons, Formulare, Job-Listen).</p>
+        <p>Alles, was der Gast <strong>sieht und anfasst</strong>: Speisekarte, Tische, der Zettel, auf dem
+        er bestellt. Bei uns: die Web-Seiten im Browser – Buttons, Formulare, Job-Listen, Farben.</p>
+        <p><a href="frontend.html">→ Frontend im Detail</a></p>
       </div>
       <div class="card">
         <h3>👨‍🍳 Backend = die Küche</h3>
-        <p>Nimmt Bestellungen an, prüft sie, kocht und gibt sie zurück. Der Gast sieht die Küche nicht.
-        Bei uns: der <strong>Server</strong>, der Anfragen bearbeitet und die Regeln durchsetzt.</p>
+        <p>Nimmt Bestellungen entgegen, <strong>prüft</strong> sie („haben wir das? ist die Bestellung
+        vollständig?"), bereitet sie zu und reicht das Ergebnis hinaus. Der Gast betritt die Küche nie.
+        Bei uns: der <strong>Server</strong> – ein Programm, das Anfragen bearbeitet und alle Regeln
+        durchsetzt.</p>
+        <p><a href="backend.html">→ Backend im Detail</a></p>
       </div>
       <div class="card">
         <h3>🗄️ Datenbank = das Lager</h3>
-        <p>Hier liegen alle Zutaten <strong>dauerhaft</strong> gelagert. Die Küche holt sie und legt Neues
-        ab. Bei uns: <strong>MySQL</strong> speichert Firmen, Jobs, Bewerbungen usw.</p>
+        <p>Hier liegt alles <strong>dauerhaft</strong>: Zutatenbestand, Lieferlisten. Nur die Küche darf
+        ins Lager. Bei uns: <strong>MySQL</strong> – dort sind Unternehmen, Studenten, Jobs und
+        Bewerbungen gespeichert, auch nach einem Neustart.</p>
+        <p><a href="datenbank.html">→ Datenbank im Detail</a></p>
       </div>
     </div>
-    <p>Der Gast (Frontend) redet <strong>nie direkt</strong> mit dem Lager (Datenbank) – immer über die
-      Küche (Backend). Genau so ist es bei uns: Das Frontend fragt das Backend, und nur das Backend spricht
-      mit der Datenbank. Das sorgt für Ordnung und Sicherheit.</p>
 
-    <h2>Der Weg einer Aktion (Beispiel: „Bewerbung absenden")</h2>
-    <pre><code>1. FRONTEND   Du füllst das Bewerbungsformular aus und klickst „Absenden".
-              → Der Browser schickt die Daten an das Backend.
+    <div class="box key">
+      <h4>Die wichtigste Regel</h4>
+      <p style="margin-bottom:0;">Der Gast (Frontend) redet <strong>nie direkt</strong> mit dem Lager
+      (Datenbank) – <strong>immer</strong> über die Küche (Backend). Genauso bei uns: Der Browser kann die
+      Datenbank gar nicht erreichen. Er stellt Anfragen an das Backend, und nur das Backend liest und
+      schreibt Daten. Das ist der zentrale Sicherheits- und Ordnungsgedanke der ganzen Architektur.</p>
+    </div>
 
-2. BACKEND    Der Server prüft: Sind alle Felder da? Ist die E-Mail gültig?
-              Existiert die Stelle? Hast du dich schon beworben?
-              → Wenn alles passt, gibt er die Daten weiter.
-
-3. DATENBANK  MySQL speichert die Bewerbung dauerhaft in der Tabelle
-              „applications".
-
-4. BACKEND    Antwortet dem Browser: „Erfolg" (oder eine Fehlermeldung).
-
-5. FRONTEND   Zeigt dir „Bewerbung gesendet!" an.</code></pre>
-    <p>Details zu jedem Schritt stehen auf den drei Seiten:
-      <a href="frontend.html">Frontend</a> · <a href="backend.html">Backend</a> ·
-      <a href="datenbank.html">Datenbank</a>.</p>
-
-    <h2>Die Technologien in einem Satz</h2>
+    <h2>3. Ein paar Grundbegriffe (in 60 Sekunden)</h2>
     <table>
-      <tr><th>Teil</th><th>Womit gebaut</th><th>Kurz erklärt</th></tr>
-      <tr><td>Frontend</td><td>HTML, CSS, JavaScript</td><td>HTML = Struktur, CSS = Aussehen, JavaScript = Verhalten/Interaktion</td></tr>
-      <tr><td>Backend</td><td>Node.js + Express</td><td>Ein selbst geschriebener Server, der die REST-API bereitstellt</td></tr>
-      <tr><td>Datenbank</td><td>MySQL</td><td>Speichert alle Daten dauerhaft in Tabellen</td></tr>
+      <tr><th>Begriff</th><th>Bedeutung – einfach erklärt</th></tr>
+      <tr><td><strong>Server</strong></td><td>Ein Programm, das dauerhaft läuft und auf Anfragen wartet – wie ein Kellner im Dienst. („Server" kann auch den Computer meinen, auf dem so ein Programm läuft.)</td></tr>
+      <tr><td><strong>Client</strong></td><td>Derjenige, der anfragt – bei uns der Browser.</td></tr>
+      <tr><td><strong>HTTP</strong></td><td>Die „Sprache", in der Browser und Server miteinander reden. Jede Nachricht ist eine <em>Anfrage</em> (Request) oder eine <em>Antwort</em> (Response).</td></tr>
+      <tr><td><strong>URL / Adresse</strong></td><td>Sagt, <em>wen</em> und <em>was</em> man erreichen will, z. B. <code>http://localhost:3000/jobs.html</code>.</td></tr>
+      <tr><td><strong>localhost</strong></td><td>Bedeutet „dieser Computer hier". Die App läuft bei uns lokal – Server und Browser sind auf demselben Rechner.</td></tr>
+      <tr><td><strong>Port</strong></td><td>Eine Art „Zimmernummer" auf einem Computer. Viele Programme können gleichzeitig laufen; unser Server wartet auf Port <code>3000</code>. Deshalb: <code>localhost:3000</code>.</td></tr>
+      <tr><td><strong>JSON</strong></td><td>Ein einfaches Textformat, in dem Frontend und Backend Daten austauschen. Sieht so aus: <code>{"name": "Lena", "ort": "Berlin"}</code> – Paare aus Bezeichnung und Wert.</td></tr>
     </table>
-    <p>Frontend und Backend laufen auf <strong>demselben Port</strong> (3000): Der Server liefert auch die
-      Web-Seiten aus. Man ruft die App im Browser unter <code>http://localhost:3000</code> auf.</p>
 
+    <h2>4. Der komplette Weg einer Aktion</h2>
+    <p>Unser Beispiel durch alle Erklärseiten: <strong>Lena bewirbt sich auf einen Job.</strong> Das passiert
+      dabei – Schritt für Schritt:</p>
+    <ol class="steps">
+      <li><strong>Lena füllt das Formular aus</strong> (Name, E-Mail, Anschreiben) und klickt „Bewerbung
+        absenden". Das <a href="frontend.html">Frontend</a> prüft sofort: Sind die Pflichtfelder ausgefüllt?
+        Sieht die E-Mail gültig aus? Wenn nicht, erscheint direkt am Feld eine Fehlermeldung – ohne dass
+        irgendetwas verschickt wird.</li>
+      <li><strong>Der Browser schickt eine HTTP-Anfrage</strong> an den Server:
+        „<code>POST /api/v1/applications</code>" – übersetzt: „Lege eine neue Bewerbung an, hier sind die
+        Daten (als JSON)."</li>
+      <li><strong>Das <a href="backend.html">Backend</a> prüft alles noch einmal</strong> – und strenger:
+        Pflichtfelder? E-Mail-Format? Existiert der Job überhaupt? Ist die Stelle noch aktiv? Hat sich diese
+        E-Mail auf diese Stelle schon einmal beworben? Erst wenn alles passt, geht es weiter. (Warum doppelt
+        prüfen? Weil man dem Browser nie blind vertrauen darf – dazu mehr auf der Backend-Seite.)</li>
+      <li><strong>Das Backend speichert die Bewerbung in der <a href="datenbank.html">Datenbank</a></strong>:
+        In der Tabelle <code>applications</code> entsteht eine neue Zeile mit Lenas Daten, verknüpft mit dem
+        Job, auf den sie sich beworben hat.</li>
+      <li><strong>Das Backend antwortet dem Browser</strong> mit einer Erfolgsmeldung (als JSON):
+        <code>{"success": true, "data": … }</code> – oder, falls etwas nicht stimmte, mit einer
+        verständlichen Fehlermeldung.</li>
+      <li><strong>Das Frontend zeigt das Ergebnis an</strong>: „Bewerbung gesendet!" – oder die Fehlermeldung
+        als kleine Einblendung. Lena sieht die Bestätigung; die Daten liegen sicher im „Lager".</li>
+    </ol>
+    <p>Merke: <strong>Frontend = zeigen &amp; einsammeln, Backend = prüfen &amp; entscheiden,
+      Datenbank = dauerhaft aufbewahren.</strong></p>
+
+    <h2>5. Womit ist was gebaut?</h2>
+    <table>
+      <tr><th>Teil</th><th>Technologie</th><th>Kurz erklärt</th><th>Wo im Projekt</th></tr>
+      <tr><td>Frontend</td><td>HTML, CSS, JavaScript</td><td>HTML = Struktur, CSS = Aussehen, JavaScript = Verhalten</td><td><code>frontend/</code></td></tr>
+      <tr><td>Backend</td><td>Node.js + Express</td><td>selbst geschriebener Server mit einer REST-Schnittstelle</td><td><code>backend/</code></td></tr>
+      <tr><td>Datenbank</td><td>MySQL</td><td>speichert alles dauerhaft in verknüpften Tabellen</td><td><code>backend/db_setup.sql</code>, <code>backend/db.js</code></td></tr>
+    </table>
+    <p>Eine Besonderheit: Frontend und Backend laufen bei uns auf <strong>demselben Port</strong>. Der
+      Server liefert nicht nur Daten, sondern auch die Web-Seiten selbst aus. Ruft man
+      <code>http://localhost:3000</code> auf, bekommt man die Startseite – ruft man
+      <code>http://localhost:3000/api/v1/jobs</code> auf, bekommt man Daten.</p>
     <div class="box why">
-      <h4>Warum diese Aufteilung in drei Teile?</h4>
-      <p style="margin-bottom:0;">Weil jeder Teil eine klare Aufgabe hat. Das macht die App
-      <strong>übersichtlich</strong> (jeder weiß, wo was passiert), <strong>sicher</strong> (nur das Backend
-      darf an die Datenbank) und <strong>wartbar</strong> (man kann das Aussehen ändern, ohne die Datenbank
-      anzufassen – und umgekehrt).</p>
+      <h4>Warum alles auf einem Port?</h4>
+      <p style="margin-bottom:0;">Wenn Seiten und Daten von <em>verschiedenen</em> Adressen kämen, würde der
+      Browser das aus Sicherheitsgründen blockieren (Stichwort „CORS" – Browser misstrauen
+      seitenübergreifenden Anfragen). Kommt beides vom selben Ort, gibt es dieses Problem gar nicht erst.
+      Außerdem reicht so ein einziger Startbefehl für die ganze App.</p>
+    </div>
+
+    <h2>6. Warum überhaupt drei Schichten?</h2>
+    <ul>
+      <li><strong>Sicherheit:</strong> Alles, was der Nutzer direkt berühren kann (das Frontend), kann er
+        auch manipulieren. Die verbindlichen Regeln sitzen deshalb im Backend – dahinter liegt die Datenbank,
+        die von außen gar nicht erreichbar ist.</li>
+      <li><strong>Übersicht:</strong> Jeder weiß sofort, wo er suchen muss: Aussehen? → Frontend. Regel oder
+        Rechenlogik? → Backend. Gespeicherte Daten? → Datenbank.</li>
+      <li><strong>Austauschbarkeit:</strong> Man könnte das Aussehen komplett erneuern, ohne die Datenbank
+        anzufassen – oder später eine Handy-App bauen, die <em>dasselbe</em> Backend benutzt.</li>
+      <li><strong>Teamarbeit:</strong> Zwei Leute können am Frontend arbeiten, zwei am Backend, zwei an der
+        Datenbank – ohne sich ständig in die Quere zu kommen. Genau so ist unsere Gruppe aufgeteilt.</li>
+    </ul>
+
+    <h2>7. Wie starte ich die App selbst?</h2>
+    <p>Die Schritt-für-Schritt-Anleitung steht in der <code>README.md</code> im Projektordner. Grob:</p>
+    <ol>
+      <li>Node.js und MySQL installieren (die zwei „Motoren" für Backend und Datenbank),</li>
+      <li>die Datenbank mit <code>backend/db_setup.sql</code> anlegen (erzeugt Tabellen + Beispieldaten),</li>
+      <li>im Ordner <code>backend/</code> die Pakete installieren und den Server starten,</li>
+      <li>im Browser <code>http://localhost:3000</code> öffnen – fertig.</li>
+    </ol>
+    <p>Demo-Zugänge (Passwort immer <code>studywork123</code>): z. B. Unternehmen
+      <code>kontakt@technova.de</code>, Studentin <code>lena.hofmann@uni-berlin.de</code>.</p>
+
+    <div class="talk">
+      <h3>🗣️ So erklärst du das Gesamtbild in 5 Sätzen weiter</h3>
+      <ol>
+        <li>StudyWork ist eine Job-Plattform für Studenten, die als Web-App im Browser läuft.</li>
+        <li>Sie besteht aus drei Teilen: Frontend (was man sieht), Backend (der Server, der alles prüft und
+          entscheidet) und Datenbank (wo alles dauerhaft gespeichert ist).</li>
+        <li>Der Browser redet nie direkt mit der Datenbank – jede Aktion geht als HTTP-Anfrage an das
+          Backend, das prüft und dann speichert oder liest.</li>
+        <li>Gebaut ist das mit HTML/CSS/JavaScript (Frontend), Node.js + Express (Backend) und MySQL
+          (Datenbank); alles läuft lokal auf <code>localhost:3000</code>.</li>
+        <li>Diese Trennung macht die App sicher, übersichtlich und gut im Team entwickelbar.</li>
+      </ol>
     </div>
 
     <div class="box info">
-      <p style="margin:0;"><strong>So liest du weiter:</strong> Oben kannst du jederzeit zwischen den drei
-      Bereichen wechseln. Jede Seite erklärt <em>wie</em> wir den Teil gebaut haben und <em>warum</em>.</p>
+      <p style="margin:0;"><strong>Weiterlesen:</strong> <a href="frontend.html">Frontend</a> ·
+      <a href="backend.html">Backend</a> · <a href="datenbank.html">Datenbank</a> ·
+      <a href="prof-fragen.html">Prof-Fragen</a> – jede Seite folgt dem
+      gleichen Aufbau: erst „wie funktioniert es", dann „warum haben wir es so gemacht", am Ende Glossar,
+      typische Fragen und die Weitererzähl-Zusammenfassung.</p>
     </div>
   </main>
 
