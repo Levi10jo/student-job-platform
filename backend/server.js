@@ -64,10 +64,36 @@ const swaggerOptions = {
       version: '1.0.0',
       description:
         'REST-API der StudyWork-Jobplattform (Stellenanzeigen, Bewerbungen, '
-        + 'Unternehmen, Authentifizierung). Geschützte Endpunkte benötigen eine '
-        + 'aktive Login-Session (HttpOnly-Cookie sw_session).',
+        + 'Unternehmen, Studenten-Profile, Authentifizierung).\n\n'
+        + 'Mit 🔒 markierte Endpunkte benötigen eine aktive Login-Session '
+        + '(HttpOnly-Cookie `sw_session`). Zum Ausprobieren: zuerst über '
+        + '`POST /api/v1/auth/login` anmelden – der Browser übernimmt das '
+        + 'Cookie dann automatisch für alle weiteren "Try it out"-Aufrufe.\n\n'
+        + '**Demo-Zugänge** (Passwort jeweils `studywork123`): Unternehmen '
+        + '`kontakt@technova.de` · Student `lena.hofmann@uni-berlin.de`.',
     },
-    servers: [{ url: 'http://localhost:3000' }],
+    servers: [{ url: 'http://localhost:3000', description: 'Lokale Entwicklung' }],
+    // Grouping shown in the UI (order + descriptions of the sections).
+    tags: [
+      { name: 'Jobs', description: 'Stellenanzeigen suchen, anlegen, verwalten und melden' },
+      { name: 'Bewerbungen', description: 'Bewerbungen einreichen (öffentlich) und als Unternehmen verwalten' },
+      { name: 'Unternehmen', description: 'Unternehmensprofile lesen und das eigene Profil verwalten' },
+      { name: 'Studenten', description: 'Eigenes Profil, Lebenslauf (PDF), Bewerbungen und Job-Alerts' },
+      { name: 'Auth', description: 'Registrierung, Login/Logout und Session-Abfrage' },
+      { name: 'System', description: 'Technische Endpunkte (Verfügbarkeits-Check)' },
+    ],
+    components: {
+      securitySchemes: {
+        // Our session cookie; routes marked with `security: [{ cookieAuth: [] }]`
+        // get a padlock icon in the Swagger UI.
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'sw_session',
+          description: 'Session-Cookie, gesetzt durch POST /api/v1/auth/login bzw. /register.',
+        },
+      },
+    },
   },
   // Absolute paths so the comments are found regardless of the start directory.
   apis: [path.join(__dirname, 'routes', '*.js'), path.join(__dirname, 'server.js')],

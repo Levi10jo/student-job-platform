@@ -56,6 +56,7 @@ async function fetchJobStatus(jobId) {
  *   get:
  *     tags: [Bewerbungen]
  *     summary: Bewerbungen auf die eigenen Stellen abrufen (Unternehmen-Login erforderlich)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: query
  *         name: job_id
@@ -104,6 +105,7 @@ router.get('/', requireCompany, async (req, res) => {
  *   get:
  *     tags: [Bewerbungen]
  *     summary: Einzelne Bewerbung abrufen (nur zu eigenen Jobs)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -219,6 +221,7 @@ router.post('/', async (req, res) => {
  *   patch:
  *     tags: [Bewerbungen]
  *     summary: Bewerbungsstatus ändern (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -308,6 +311,7 @@ router.patch('/:id', requireCompany, async (req, res) => {
  *   delete:
  *     tags: [Bewerbungen]
  *     summary: Bewerbung löschen (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id

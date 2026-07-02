@@ -84,6 +84,7 @@ async function canViewProfile(viewer, student) {
  *   get:
  *     tags: [Studenten]
  *     summary: Eigenes Profil abrufen (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     responses:
  *       200: { description: Das eigene Profil }
  *       401: { description: Nicht als Student angemeldet }
@@ -108,6 +109,7 @@ router.get('/me', requireStudent, async (req, res) => {
  *   get:
  *     tags: [Studenten]
  *     summary: Eigene Bewerbungen samt Status (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     responses:
  *       200: { description: Liste der eigenen Bewerbungen }
  *       401: { description: Nicht als Student angemeldet }
@@ -180,6 +182,7 @@ async function fetchAlertMatches(alert, limit) {
  *   get:
  *     tags: [Studenten]
  *     summary: Eigene Job-Alerts inkl. passender Jobs (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     responses:
  *       200: { description: Liste der Job-Alerts mit Trefferzahl + Treffern }
  *       401: { description: Nicht als Student angemeldet }
@@ -207,6 +210,7 @@ router.get('/me/alerts', requireStudent, async (req, res) => {
  *   post:
  *     tags: [Studenten]
  *     summary: Job-Alert aus Suchkriterien anlegen (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     requestBody:
  *       required: false
  *       content:
@@ -261,6 +265,7 @@ router.post('/me/alerts', requireStudent, async (req, res) => {
  *   delete:
  *     tags: [Studenten]
  *     summary: Eigenen Job-Alert löschen (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -297,6 +302,7 @@ router.delete('/me/alerts/:id', requireStudent, async (req, res) => {
  *   put:
  *     tags: [Studenten]
  *     summary: Eigenes Profil bearbeiten (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     requestBody:
  *       required: true
  *       content:
@@ -376,6 +382,7 @@ router.put('/me', requireStudent, async (req, res) => {
  *   put:
  *     tags: [Studenten]
  *     summary: Lebenslauf (PDF) hochladen/ersetzen (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     requestBody:
  *       required: true
  *       content:
@@ -430,6 +437,7 @@ router.put('/me/cv', requireStudent, async (req, res) => {
  *   delete:
  *     tags: [Studenten]
  *     summary: Eigenen Lebenslauf entfernen (Studenten-Login)
+ *     security: [{ cookieAuth: [] }]
  *     responses:
  *       200: { description: Lebenslauf entfernt }
  *       401: { description: Nicht als Student angemeldet }
@@ -456,6 +464,7 @@ router.delete('/me/cv', requireStudent, async (req, res) => {
  *   delete:
  *     tags: [Studenten]
  *     summary: Eigenes Konto löschen (inkl. eigener Bewerbungen)
+ *     security: [{ cookieAuth: [] }]
  *     responses:
  *       200: { description: Konto gelöscht }
  *       401: { description: Nicht als Student angemeldet }

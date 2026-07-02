@@ -219,7 +219,7 @@ router.post('/logout', (req, res) => {
  *     tags: [Auth]
  *     summary: Aktuell eingeloggten Nutzer abrufen
  *     responses:
- *       200: { description: Nutzerobjekt (role, id, name, email) oder null }
+ *       200: { description: "Nutzerobjekt (role, id, name, email) oder null" }
  */
 router.get('/me', (req, res) => {
   try {

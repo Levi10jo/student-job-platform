@@ -171,6 +171,7 @@ router.get('/:id', async (req, res) => {
  *   post:
  *     tags: [Jobs]
  *     summary: Neue Stellenanzeige erstellen (Unternehmen-Login erforderlich)
+ *     security: [{ cookieAuth: [] }]
  *     requestBody:
  *       required: true
  *       content:
@@ -242,6 +243,7 @@ router.post('/', requireCompany, async (req, res) => {
  *   put:
  *     tags: [Jobs]
  *     summary: Eigene Stellenanzeige vollständig aktualisieren (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -326,6 +328,7 @@ router.put('/:id', requireCompany, async (req, res) => {
  *   patch:
  *     tags: [Jobs]
  *     summary: Eigene Stellenanzeige teilweise ändern, z. B. nur Status (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -480,6 +483,7 @@ router.post('/:id/report', async (req, res) => {
  *   delete:
  *     tags: [Jobs]
  *     summary: Eigene Stellenanzeige löschen (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id

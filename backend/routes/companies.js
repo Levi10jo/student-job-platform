@@ -179,6 +179,7 @@ router.post('/', async (req, res) => {
  *   put:
  *     tags: [Unternehmen]
  *     summary: Eigenes Unternehmensprofil aktualisieren (Unternehmen-Login)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
@@ -256,6 +257,7 @@ router.put('/:id', requireCompany, async (req, res) => {
  *   delete:
  *     tags: [Unternehmen]
  *     summary: Eigenes Unternehmen löschen (inkl. Jobs & Bewerbungen)
+ *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
