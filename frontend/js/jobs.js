@@ -1,13 +1,5 @@
 'use strict';
 
-/* ==========================================================================
-   StudyWork – Studenten-Sicht.
-   Bedient zwei Seiten (anhand <body data-page>):
-   - "jobs"       : Jobsuche mit Live-Filtern, Sortierung & URL-Sync (jobs.html)
-   - "job-detail" : Jobdetail + Bewerbungsformular + Unternehmensprofil
-                    (job-detail.html)
-   ========================================================================== */
-
 (function () {
   const {
     API, escapeHtml: esc, showToast,
@@ -16,7 +8,6 @@
     getFavorites, favButton, userReady, isNew,
   } = window.StudyWork;
 
-  // localStorage key for the optional "remember my data" applicant prefill.
   const APPLICANT_KEY = 'sw-applicant';
   const SORT_MODES = ['neu', 'alt', 'titel'];
 
@@ -33,11 +24,8 @@
     const remoteToggle = document.getElementById('remote-filter');
     const alertBtn = document.getElementById('job-alert-btn');
 
-    // Last fetched result set – sorting happens client-side on this copy.
     let lastJobs = [];
-    // When active, only jobs on the local favourites list are shown.
     let favOnly = false;
-    // When active, only postings located "Remote" are shown.
     let remoteOnly = false;
 
     function showSkeletons(n = 6) {
@@ -55,7 +43,6 @@
 
     function sortJobs(jobs, mode) {
       const copy = jobs.slice();
-      // The API delivers newest first, so "alt" is simply the reverse order.
       if (mode === 'alt') copy.reverse();
       else if (mode === 'titel') copy.sort((a, b) => a.title.localeCompare(b.title, 'de'));
       return copy;
@@ -93,7 +80,6 @@
       grid.innerHTML = jobs.map(renderJobCard).join('');
     }
 
-    // Keeps the favourites filter button label/count in sync.
     function updateFavToggle() {
       const count = getFavorites().length;
       document.getElementById('fav-count').textContent = count;
@@ -103,7 +89,6 @@
     async function loadJobs(filters) {
       showSkeletons();
       try {
-        // Students only see postings that are open for applications.
         lastJobs = await API.jobs.list({ ...filters, status: 'aktiv' });
         renderJobs();
       } catch (err) {
@@ -129,8 +114,6 @@
       return Boolean(f.title || f.location || f.job_type);
     }
 
-    // Keeps the address bar in sync so a filtered search can be shared,
-    // bookmarked or restored after a reload.
     function syncUrl(filters) {
       const sp = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -154,14 +137,11 @@
       refresh();
     });
 
-    // Live search: text inputs filter while typing (debounced),
-    // dropdown changes apply immediately.
     const liveRefresh = debounce(refresh, 300);
     form.elements.title.addEventListener('input', liveRefresh);
     form.elements.location.addEventListener('input', liveRefresh);
     form.elements.job_type.addEventListener('change', refresh);
 
-    // Sorting is purely client-side – no need to refetch.
     sortSelect.addEventListener('change', () => {
       syncUrl(currentFilters());
       renderJobs();
@@ -173,20 +153,18 @@
       refresh();
     });
 
-    // Favourites filter: purely client-side on the already fetched list.
     favToggle.addEventListener('click', () => {
       favOnly = !favOnly;
       updateFavToggle();
       renderJobs();
     });
-    // Re-render when a heart is toggled so the active filter stays accurate.
+
     document.addEventListener('sw:favorites', () => {
       updateFavToggle();
       if (favOnly) renderJobs();
     });
     updateFavToggle();
 
-    // Remote filter: purely client-side on the already fetched list.
     remoteToggle.addEventListener('click', () => {
       remoteOnly = !remoteOnly;
       remoteToggle.setAttribute('aria-pressed', String(remoteOnly));
@@ -194,8 +172,7 @@
       renderJobs();
     });
 
-    // Job-Alert: only logged-in students may save a search. Show the button
-    // once the session is known; clicking saves the current filters as an alert.
+    // Job-Alert: 
     userReady.then((user) => {
       if (user && user.role === 'student') alertBtn.hidden = false;
     });
@@ -217,9 +194,6 @@
       }
     });
 
-    // Keyboard shortcut: pressing "/" jumps to the search field (unless the
-    // user is already typing somewhere). A power-user nicety, common on
-    // search-heavy sites.
     const searchInput = form.elements.title;
     searchInput.placeholder = 'Stichwort, z. B. Marketing  ( / )';
     document.addEventListener('keydown', (event) => {
@@ -231,7 +205,7 @@
       searchInput.select();
     });
 
-    // Restore filters + sort order from the URL (e.g. shared links).
+    
     const params = new URLSearchParams(window.location.search);
     ['title', 'location', 'job_type'].forEach((key) => {
       if (params.has(key) && form.elements[key]) form.elements[key].value = params.get(key);
@@ -256,8 +230,6 @@
       return;
     }
 
-    // If the visitor came from a filtered search, keep those filters in the
-    // back link instead of dropping them on the plain jobs page.
     const backLink = document.querySelector('.back-link');
     if (backLink && document.referrer) {
       try {
@@ -288,16 +260,13 @@
         loadCompanyExtras(job);
         markAppliedState(job);
       } catch (err) {
-        // A missing job (404) should land on the friendly 404 page.
         window.location.replace('404.html');
       }
     }
 
-    // Badge colour + label per application status.
+    
     const APP_STATUS_CLASS = { offen: 'info', gesehen: 'warning', angenommen: 'success', abgelehnt: 'danger' };
 
-    // If a logged-in student already applied to this job, replace the form
-    // with a clear notice + current status (the server blocks duplicates anyway).
     async function markAppliedState(job) {
       const user = await userReady;
       if (!user || user.role !== 'student') return;
@@ -305,7 +274,7 @@
       try {
         apps = await API.students.myApplications();
       } catch (err) {
-        return; // not critical – leave the form as is
+        return;
       }
       const mine = apps.find((a) => a.job_id === job.id);
       if (!mine) return;
@@ -407,7 +376,7 @@
       setupReport(job);
     }
 
-    // "Job melden" – a discreet toggle that reveals a compact report form.
+    // "Job melden"
     function reportBlockHtml() {
       const reasons = [
         ['fake', 'Fake-Inserat'],
@@ -471,7 +440,6 @@
             message: form.message.value.trim() || undefined,
           });
           showToast('Danke! Deine Meldung ist eingegangen und wird geprüft.', 'success');
-          // Collapse and lock the block after a successful report.
           panel.hidden = true;
           toggle.disabled = true;
           toggle.setAttribute('aria-expanded', 'false');
@@ -484,8 +452,6 @@
       });
     }
 
-    // Loads company profile + other openings of the same company. These are
-    // optional extras – if they fail, the page stays fully usable.
     async function loadCompanyExtras(job) {
       try {
         const [company, companyJobs] = await Promise.all([
@@ -502,7 +468,6 @@
     function renderCompanyBox(company) {
       const box = document.getElementById('company-box');
       if (!box) return;
-      // Normalise the website so the link works even without a protocol.
       let website = (company.website || '').trim();
       if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
       const parts = [];
@@ -540,16 +505,13 @@
       const form = document.getElementById('apply-form');
       if (!form) return;
 
-      // Prefill name/email if the visitor opted in on a previous application.
+      
       const saved = readSavedApplicant();
       if (saved) {
         form.student_name.value = saved.name || '';
         form.student_email.value = saved.email || '';
       }
 
-      // Logged-in students get their account data prefilled (account data
-      // wins over the locally remembered values). The "remember me" checkbox
-      // is pointless in that case, so it is hidden and disarmed.
       userReady.then((user) => {
         if (user && user.role === 'student') {
           form.student_name.value = user.name;
@@ -559,7 +521,7 @@
             rememberRow.hidden = true;
             document.getElementById('remember-me').checked = false;
           }
-          // Make the profile/CV connection explicit in the application flow.
+          
           const hint = document.createElement('p');
           hint.className = 'form-hint';
           hint.style.margin = '0 0 14px';
@@ -568,13 +530,13 @@
         }
       });
 
-      // Live character counter for the cover letter.
+      
       const counter = document.getElementById('cover-count');
       form.cover_letter.addEventListener('input', () => {
         counter.textContent = form.cover_letter.value.length;
       });
 
-      // Clear a field's error as soon as the user edits it.
+      
       form.addEventListener('input', (event) => {
         const group = event.target.closest('.form-group');
         if (group) group.classList.remove('has-error');
@@ -623,7 +585,7 @@
       });
     }
 
-    // Replaces the form with a success confirmation after applying.
+    
     function showConfirmation(job) {
       const aside = document.querySelector('#job-detail aside');
       if (!aside) return;

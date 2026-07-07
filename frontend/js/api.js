@@ -1,15 +1,5 @@
 'use strict';
 
-/* ==========================================================================
-   StudyWork – Frontend-Basis-Layer (von jeder Seite geladen).
-   Enthält:
-   - API: zentraler REST-Client (fetch-Wrapper)
-   - UI-Helfer: escapeHtml (XSS-Schutz), showToast
-   - Theme-Umschaltung (Light/Dark)
-   - mountChrome(): rendert Navigation + Footer (DRY, keine HTML-Duplikate)
-   Alles wird unter window.StudyWork bereitgestellt.
-   ========================================================================== */
-
 window.StudyWork = (function () {
   const API_BASE = '/api/v1';
 
@@ -29,7 +19,6 @@ window.StudyWork = (function () {
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   };
 
-  // Small inline icons for job meta rows (location / salary / publish date).
   const META_ICON = {
     location: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
     salary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7a6 6 0 1 0 0 10"/><line x1="4" y1="11" x2="14" y2="11"/><line x1="4" y1="14" x2="13" y2="14"/></svg>',
@@ -38,7 +27,6 @@ window.StudyWork = (function () {
 
   /* --- API-Client -------------------------------------------------------- */
 
-  // Builds a query string from an object, skipping empty/undefined values.
   function qs(params) {
     if (!params) return '';
     const sp = new URLSearchParams();
@@ -51,8 +39,6 @@ window.StudyWork = (function () {
     return s ? `?${s}` : '';
   }
 
-  // Core request helper. Resolves with response.data on success, throws an
-  // Error carrying the server's German message on any failure.
   async function request(method, path, body) {
     const options = { method, headers: {} };
     if (body !== undefined) {
@@ -81,7 +67,6 @@ window.StudyWork = (function () {
     return json.data;
   }
 
-  // Resource-specific convenience methods mapped onto the REST endpoints.
   const API = {
     jobs: {
       list: (params) => request('GET', `/jobs${qs(params)}`),
@@ -129,8 +114,6 @@ window.StudyWork = (function () {
 
   /* --- Login-Status (Session-Cookie, von jeder Seite abgefragt) ---------- */
 
-  // The session cookie is HttpOnly, so the logged-in user is fetched once per
-  // page load. `userReady` lets page scripts await the result before rendering.
   let currentUser = null;
   const userReady = API.auth.me()
     .then((user) => { currentUser = user; return user; })
@@ -140,7 +123,6 @@ window.StudyWork = (function () {
     return currentUser;
   }
 
-  // Notifies the nav (and any page script) that the login state changed.
   function setUser(user) {
     currentUser = user;
     renderNavAuth();
@@ -154,8 +136,6 @@ window.StudyWork = (function () {
 
   /* --- UI-Helfer --------------------------------------------------------- */
 
-  // Escapes user/API-supplied strings before they are inserted via innerHTML.
-  // This is the central XSS guard used throughout the frontend.
   function escapeHtml(value) {
     if (value === null || value === undefined) return '';
     return String(value)
@@ -166,12 +146,11 @@ window.StudyWork = (function () {
       .replace(/'/g, '&#39;');
   }
 
-  // Basic client-side email format check (mirrors the server-side rule).
   function isEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
   }
 
-  // Formats an ISO timestamp as a short German date (e.g. "05. Jun 2026").
+  // Format (zB. "05. Jun 2026").
   function formatDate(iso) {
     try {
       return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -180,8 +159,7 @@ window.StudyWork = (function () {
     }
   }
 
-  // Human-friendly relative date for job cards ("heute", "gestern",
-  // "vor 3 Tagen"); falls back to the full date after a week.
+  // "vor 3 Tagen");
   function formatRelativeDate(iso) {
     const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
     if (Number.isNaN(days) || days < 0) return formatDate(iso);
@@ -191,20 +169,17 @@ window.StudyWork = (function () {
     return formatDate(iso);
   }
 
-  // True if a posting was published within the last 7 days (for the "Neu" badge).
   function isNew(iso) {
     const diff = Date.now() - new Date(iso).getTime();
     return diff >= 0 && diff < 7 * 86400000;
   }
 
-  // Truncates text on a word boundary for previews.
   function truncate(text, max) {
     const t = String(text || '');
     if (t.length <= max) return t;
     return t.slice(0, max).replace(/\s+\S*$/, '') + '…';
   }
 
-  // Delays a function call until input has settled (used for live search).
   function debounce(fn, wait = 300) {
     let timer;
     return function debounced(...args) {
@@ -230,7 +205,6 @@ window.StudyWork = (function () {
     return getFavorites().includes(Number(jobId));
   }
 
-  // Adds/removes a job id and notifies listeners (e.g. the favourites filter).
   function toggleFavorite(jobId) {
     const id = Number(jobId);
     const favs = getFavorites();
@@ -244,7 +218,6 @@ window.StudyWork = (function () {
     return active ? 'Job aus der Merkliste entfernen' : 'Job zur Merkliste hinzufügen';
   }
 
-  // Heart toggle button; works on every page via one delegated listener below.
   function favButton(job) {
     const active = isFavorite(job.id);
     return `<button class="fav-btn" type="button" data-fav="${job.id}" aria-pressed="${active}" aria-label="${favLabel(active)}">${ICON.heart}</button>`;
@@ -261,7 +234,6 @@ window.StudyWork = (function () {
 
   /* --- Job-Karten (gemeinsamer Renderer für Jobsuche & Landingpage) ------ */
 
-  // Maps a job status to its badge colour class.
   const STATUS_BADGE_CLASS = { aktiv: 'success', pausiert: 'warning', geschlossen: 'danger' };
 
   function typeBadge(type) {
@@ -273,14 +245,11 @@ window.StudyWork = (function () {
     return `<span class="badge badge-${cls}">${escapeHtml(status)}</span>`;
   }
 
-  // Renders one job as a linked card. Used by jobs.html and the landing page.
   function renderJobCard(job) {
     const meta = [];
     if (job.location) meta.push(`<span>${META_ICON.location}${escapeHtml(job.location)}</span>`);
     if (job.salary_range) meta.push(`<span>${META_ICON.salary}${escapeHtml(job.salary_range)}</span>`);
-    // Relative date reads naturally; the exact date stays available on hover.
     meta.push(`<span title="Veröffentlicht am ${formatDate(job.created_at)}">${META_ICON.date}${formatRelativeDate(job.created_at)}</span>`);
-    // Status badge only when not actively open, to keep active cards calm.
     const status = job.status === 'aktiv' ? '' : statusBadge(job.status);
     const fresh = isNew(job.created_at) ? '<span class="badge badge-new">Neu</span>' : '';
     return `
@@ -292,9 +261,6 @@ window.StudyWork = (function () {
         <div class="meta">${meta.join('')}</div>
       </article>`;
   }
-
-  // --- Form validation display helpers ---
-  // Convention: each field <input name="x"> pairs with <span id="err-x">.
 
   function setFieldError(form, name, message) {
     const field = form.elements[name];
@@ -311,7 +277,6 @@ window.StudyWork = (function () {
     form.querySelectorAll('[aria-invalid]').forEach((f) => f.removeAttribute('aria-invalid'));
   }
 
-  // Shows a transient toast notification. type: 'success' | 'error' | 'info'.
   function showToast(message, type = 'info', timeout = 4500) {
     let stack = document.querySelector('.toast-stack');
     if (!stack) {
@@ -330,7 +295,7 @@ window.StudyWork = (function () {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 220);
     }, timeout);
-    // Manual dismiss: stop the auto-hide timer and remove immediately.
+
     toast.querySelector('.toast-close').addEventListener('click', () => {
       clearTimeout(timer);
       toast.remove();
@@ -338,9 +303,6 @@ window.StudyWork = (function () {
   }
 
   /* --- Flash-Meldungen (überleben eine Weiterleitung) -------------------- */
-  // A normal toast is lost when the page navigates. setFlash stores a message
-  // for one page load; showFlash() displays it on the next page (used e.g. for
-  // the logout confirmation after redirecting to the landing page).
   const FLASH_KEY = 'sw-flash';
 
   function setFlash(message, type = 'info') {
@@ -361,8 +323,6 @@ window.StudyWork = (function () {
   }
 
   /* --- Theme (Light/Dark) ------------------------------------------------ */
-
-  // Tints the browser UI (mobile address bar) to match the page background.
   function syncThemeColor() {
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {
@@ -418,13 +378,11 @@ window.StudyWork = (function () {
       </div>`;
   }
 
-  // Fills the auth area of the nav according to the current login state.
   function renderNavAuth() {
     const el = document.getElementById('nav-auth');
     if (!el) return;
     if (currentUser) {
       const roleLabel = currentUser.role === 'company' ? 'Unternehmen' : 'Student';
-      // Students get a clickable chip leading to their profile editor.
       const chip = currentUser.role === 'student'
         ? `<a class="nav-user nav-user-link" href="profile.html" title="Mein Profil (${escapeHtml(currentUser.email)})">
              ${ICON.user}<span class="nav-user-name">${escapeHtml(currentUser.name)}</span>
@@ -440,8 +398,6 @@ window.StudyWork = (function () {
         btn.disabled = true;
         await logout();
         setFlash('Du wurdest abgemeldet.', 'success');
-        // Always return to the public landing page so no protected content
-        // (e.g. a profile or the dashboard) stays visible after logging out.
         window.location.href = 'index.html';
       });
     } else {
@@ -452,8 +408,6 @@ window.StudyWork = (function () {
     }
   }
 
-  // Floating "back to top" button: appears after scrolling down a bit and
-  // scrolls smoothly to the top. Injected once, available on every page.
   function mountScrollTop() {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -471,8 +425,6 @@ window.StudyWork = (function () {
     onScroll();
   }
 
-  // Renders header + footer into their placeholders and wires up the toggle.
-  // The active page is read from <body data-page="...">.
   function mountChrome() {
     const page = document.body.dataset.page || '';
     const header = document.getElementById('site-header');
@@ -482,10 +434,8 @@ window.StudyWork = (function () {
     const toggle = document.querySelector('.theme-toggle');
     if (toggle) toggle.addEventListener('click', toggleTheme);
     renderNavAuth();
-    // Re-render once the session lookup has finished.
     userReady.then(renderNavAuth);
     mountScrollTop();
-    // Show a flash message carried over from the previous page (e.g. logout).
     showFlash();
   }
 

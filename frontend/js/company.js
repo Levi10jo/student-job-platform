@@ -1,12 +1,5 @@
 'use strict';
 
-/* ==========================================================================
-   StudyWork – Unternehmens-Dashboard (company-dashboard.html).
-   Das Dashboard ist an den Unternehmens-Login gekoppelt: Ohne Anmeldung wird
-   ein Hinweis mit Links zu Login/Registrierung gezeigt; angemeldet verwaltet
-   das Unternehmen sein Profil, seine Stellenanzeigen und Bewerbungen.
-   ========================================================================== */
-
 (function () {
   const {
     API, escapeHtml: esc, showToast, ICON,
@@ -14,21 +7,21 @@
     getUser, setUser, userReady, setFlash,
   } = window.StudyWork;
 
-  // Allowed values – mirror the database ENUMs.
+  //ENUMs.
   const JOB_TYPES = ['Werkstudent', 'Praktikum', 'Teilzeit', 'Vollzeit', 'Minijob'];
   const JOB_STATUSES = ['aktiv', 'pausiert', 'geschlossen'];
   const APP_STATUSES = ['offen', 'gesehen', 'angenommen', 'abgelehnt'];
   const JOB_STATUS_CLASS = { aktiv: 'success', pausiert: 'warning', geschlossen: 'danger' };
   const APP_STATUS_CLASS = { offen: 'info', gesehen: 'warning', angenommen: 'success', abgelehnt: 'danger' };
 
-  // Module state
-  let activeCompany = null; // full profile of the logged-in company
+  
+  let activeCompany = null; 
   let activeCompanyId = null;
   let currentJobs = [];
   let currentApps = {}; // jobId -> [applications]
-  let appFilter = 'alle'; // active application status filter (preserved across renders)
+  let appFilter = 'alle';
 
-  // DOM references (assigned in init)
+  // DOM Referenzen
   let barEl;
   let contentEl;
 
@@ -38,7 +31,7 @@
 
   /* --- Modal-Steuerung --------------------------------------------------- */
 
-  // Element that had focus before a modal opened – restored on close (a11y).
+  
   let lastFocused = null;
 
   function openModal(id) {
@@ -59,8 +52,6 @@
     hideBackdrop(document.getElementById(id));
   }
 
-  // Wires up closing via the X / cancel buttons, backdrop click and Escape key,
-  // plus a simple focus trap so Tab cycles inside the open dialog.
   function setupModalDismiss() {
     document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', (event) => {
@@ -95,7 +86,6 @@
 
   /* --- Eingeloggtes Unternehmen laden ------------------------------------- */
 
-  // Loads the full profile (description, website) of the logged-in company.
   async function loadCompany() {
     activeCompany = await API.companies.get(activeCompanyId);
     renderCompanyBar();
@@ -121,8 +111,6 @@
       <div class="skeleton skel-card" style="height:120px"></div>`;
   }
 
-  // Shown when nobody (or a student) is logged in – the dashboard needs a
-  // company account.
   function loginRequiredHtml() {
   const user = getUser();
 
@@ -160,13 +148,11 @@
       ? apps.map(appItemHtml).join('')
       : '<p class="text-muted mb-0">Noch keine Bewerbungen für diese Stelle.</p>';
 
-    // Quick status switcher (aktiv/pausiert/geschlossen) without opening the modal.
+    // Quick status switcher (aktiv/pausiert/geschlossen)
     const statusOptions = JOB_STATUSES
       .map((s) => `<option value="${s}"${s === job.status ? ' selected' : ''}>${s}</option>`)
       .join('');
 
-    // Distinct application statuses on this job – drives the status filter
-    // (CSS hides job cards that have no application with the chosen status).
     const appStatuses = [...new Set(apps.map((a) => a.status))].join(' ');
 
     return `
@@ -205,7 +191,6 @@
     const options = APP_STATUSES
       .map((s) => `<option value="${s}"${s === app.status ? ' selected' : ''}>${s}</option>`)
       .join('');
-    // Applicants with a StudyWork account get a link to their profile.
     const profileLink = app.student_id
       ? `<a class="profile-link" href="profile.html?id=${app.student_id}">${ICON.user}Profil ansehen</a>`
       : '';
@@ -256,7 +241,6 @@
         </button>
       </div>`;
 
-    // Status filter chips – only shown once there is at least one application.
     const allApps = jobs.flatMap((j) => appsByJob[j.id] || []);
     let filterBar = '';
     if (allApps.length) {
@@ -292,8 +276,6 @@
       contentEl.innerHTML = loginRequiredHtml();
       return;
     }
-    // Remember which application lists are expanded so a re-render (e.g.
-    // after deleting an application) doesn't collapse them again.
     const openPanels = [...contentEl.querySelectorAll('[id^="apps-"]:not([hidden])')].map((el) => el.id);
     contentEl.innerHTML = dashboardSkeleton();
     try {
@@ -305,8 +287,6 @@
       currentJobs = jobs;
       currentApps = appsByJob;
       contentEl.innerHTML = dashboardHtml(jobs, appsByJob);
-      // A status filter force-opens all panels; otherwise restore the panels
-      // that were open before the re-render.
       if (appFilter !== 'alle') {
         applyAppFilter(appFilter);
       } else {
@@ -318,7 +298,6 @@
     }
   }
 
-  // Opens/closes a single application panel and syncs its toggle button.
   function setPanelOpen(panelId, open) {
     const panel = document.getElementById(panelId);
     const btn = contentEl.querySelector(`[aria-controls="${panelId}"]`);
@@ -329,8 +308,6 @@
     btn.textContent = open ? `Bewerbungen ausblenden (${count})` : `Bewerbungen anzeigen (${count})`;
   }
 
-  // Recomputes the data attributes + chip counts the filter relies on, after
-  // an in-place status change (avoids a full re-render/refetch).
   function refreshAppFilterState() {
     currentJobs.forEach((job) => {
       const block = contentEl.querySelector(`#apps-${job.id}`)?.closest('.job-block');
@@ -348,8 +325,6 @@
     if (appFilter !== 'alle') applyAppFilter(appFilter);
   }
 
-  // Applies the application status filter: marks the active chip, drives the
-  // CSS hiding via a data attribute and reveals matching panels.
   function applyAppFilter(status) {
     appFilter = status;
     contentEl.querySelectorAll('.filter-chip').forEach((chip) => {
@@ -359,7 +334,6 @@
       delete contentEl.dataset.appFilter;
     } else {
       contentEl.dataset.appFilter = status;
-      // Reveal every (still visible) job's applications so matches are shown.
       contentEl.querySelectorAll('[id^="apps-"]').forEach((panel) => setPanelOpen(panel.id, true));
     }
   }
@@ -439,7 +413,6 @@
     }
   }
 
-  // Removes a single application (e.g. spam or withdrawn by the applicant).
   async function deleteApplication(id) {
     const app = Object.values(currentApps).flat().find((a) => a.id === id);
     const ok = await confirmDelete(
@@ -465,7 +438,6 @@
     btn.textContent = willShow ? `Bewerbungen ausblenden (${count})` : `Bewerbungen anzeigen (${count})`;
   }
 
-  // Quick status change for a job posting; updates the badge in place.
   async function updateJobStatus(jobId, status, selectEl_) {
     selectEl_.disabled = true;
     try {
@@ -481,7 +453,7 @@
       showToast('Status der Stellenanzeige aktualisiert.', 'success');
     } catch (err) {
       showToast(err.message, 'error');
-      renderDashboard(); // restore a consistent state on failure
+      renderDashboard();
     } finally {
       selectEl_.disabled = false;
     }
@@ -491,7 +463,6 @@
     selectEl_.disabled = true;
     try {
       await API.applications.patch(appId, { status });
-      // Update the badge in place and the cached state.
       const item = selectEl_.closest('.app-item');
       const badgeEl = item.querySelector('.badge');
       if (badgeEl) {
@@ -503,12 +474,11 @@
         const found = arr.find((a) => a.id === appId);
         if (found) found.status = status;
       });
-      // Keep the status filter (chip counts, card visibility) consistent.
       refreshAppFilterState();
       showToast('Bewerbungsstatus aktualisiert.', 'success');
     } catch (err) {
       showToast(err.message, 'error');
-      renderDashboard(); // restore a consistent state on failure
+      renderDashboard();
     } finally {
       selectEl_.disabled = false;
     }
@@ -541,7 +511,6 @@
       website: form.website.value.trim(),
     };
 
-    // Normalise the website so stored links work without a typed protocol.
     if (data.website && !/^https?:\/\//i.test(data.website)) {
       data.website = `https://${data.website}`;
     }
@@ -561,7 +530,6 @@
       closeModal('company-modal');
       activeCompany = saved;
       renderCompanyBar();
-      // Keep the nav user chip in sync with the changed name/email.
       setUser({ ...getUser(), name: saved.name, email: saved.email });
     } catch (err) {
       showToast(err.message, 'error');
@@ -571,9 +539,6 @@
     }
   }
 
-  // Deletes the logged-in company after an explicit confirmation. The backend
-  // cascades the delete to all of its jobs and their applications and ends
-  // the login session.
   async function deleteCompany() {
     if (!activeCompany) return;
     const ok = await confirmDelete(
@@ -593,9 +558,6 @@
   /* --- Event-Delegation für den dynamischen Inhalt ----------------------- */
 
   function onContentClick(event) {
-    // Status filter chips (separate from the [data-action] buttons). Match the
-    // chip class, not [data-app-filter] – the dashboard container also carries
-    // that attribute while a filter is active.
     const filterChip = event.target.closest('.filter-chip');
     if (filterChip) {
       applyAppFilter(filterChip.dataset.appFilter);
@@ -614,8 +576,6 @@
     else if (action === 'copy-email') copyEmail(actionEl.dataset.email, actionEl);
   }
 
-  // Legacy clipboard fallback for contexts where the async Clipboard API is
-  // blocked (e.g. some iframes): a hidden textarea + execCommand('copy').
   function legacyCopy(text) {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -630,7 +590,6 @@
     return ok;
   }
 
-  // Copies an applicant's email to the clipboard with a short visual cue.
   async function copyEmail(email, btn) {
     let ok = false;
     try {
@@ -678,7 +637,6 @@
     contentEl.addEventListener('click', onContentClick);
     contentEl.addEventListener('change', onContentChange);
 
-    // Wait for the session lookup – the dashboard is tied to the company login.
     const user = await userReady;
     if (!user || user.role !== 'company') {
       contentEl.innerHTML = loginRequiredHtml();

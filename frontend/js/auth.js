@@ -1,13 +1,5 @@
 'use strict';
 
-/* ==========================================================================
-   StudyWork – Anmeldung & Registrierung (login.html / register.html).
-   Beide Seiten teilen sich den Rollen-Umschalter (Student / Unternehmen);
-   die Registrierung blendet je nach Rolle Zusatzfelder ein.
-   Nach Erfolg wird rollenabhängig weitergeleitet:
-   Unternehmen -> Dashboard, Studenten -> Jobsuche.
-   ========================================================================== */
-
 (function () {
   const {
     API, showToast, isEmail, setFieldError, clearFieldErrors, setUser, userReady, setFlash,
@@ -19,19 +11,15 @@
     return new FormData(form).get('role') === 'company' ? 'company' : 'student';
   }
 
-  // Where to go after a successful login/registration.
   function redirectByRole(role) {
     window.location.href = role === 'company' ? 'company-dashboard.html' : 'jobs.html';
   }
 
-  // Toggles the submit button into a busy state while the request runs.
   function setBusy(button, busy, busyText, idleText) {
     button.disabled = busy;
     button.textContent = busy ? busyText : idleText;
   }
 
-  // Show/hide password (eye button next to each password field). One
-  // delegated listener covers all .pw-toggle buttons on the page.
   document.addEventListener('click', (event) => {
     const btn = event.target.closest('.pw-toggle');
     if (!btn) return;
@@ -82,7 +70,6 @@
     const companyFields = document.getElementById('company-fields');
     const nameLabel = document.getElementById('reg-name-label');
 
-    // The role switch changes the name label and shows the company extras.
     function applyRole() {
       const isCompany = selectedRole(form) === 'company';
       companyFields.hidden = !isCompany;
@@ -124,7 +111,6 @@
       if (role === 'company') {
         const description = form.description.value.trim();
         let website = form.website.value.trim();
-        // Normalise the website so stored links work without a typed protocol.
         if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
         if (description) data.description = description;
         if (website) data.website = website;
@@ -147,7 +133,6 @@
   /* --- Router -------------------------------------------------------------- */
 
   document.addEventListener('DOMContentLoaded', async () => {
-    // Already logged in? Skip the form and go straight to the right page.
     const user = await userReady;
     if (user) {
       redirectByRole(user.role);

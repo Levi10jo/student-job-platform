@@ -1,13 +1,5 @@
 'use strict';
 
-/* ==========================================================================
-   StudyWork – Studenten-Profil (profile.html).
-   Zwei Modi anhand der URL:
-   - ohne ?id   : eigenes Profil bearbeiten (nur für eingeloggte Studenten)
-   - mit  ?id=N : Profil ansehen (read-only); der Server prüft den Zugriff
-                  (eigenes Profil | Unternehmen mit Bewerbung | Sichtbarkeit=all)
-   Mit ?id=<eigene>&preview=1 sieht man die eigene Außenansicht.
-   ========================================================================== */
 
 (function () {
   const {
@@ -22,10 +14,10 @@
     all: 'Alle Unternehmen',
   };
 
-  // Badge colour per application status (mirrors the dashboard).
+  
   const APP_STATUS_CLASS = { offen: 'info', gesehen: 'warning', angenommen: 'success', abgelehnt: 'danger' };
 
-  // Splits the comma-separated skills string into trimmed, non-empty entries.
+  
   function parseSkills(str) {
     return String(str || '')
       .split(',')
@@ -39,7 +31,6 @@
     return `<div class="skill-list">${skills.map((s) => `<span class="badge badge-neutral">${esc(s)}</span>`).join('')}</div>`;
   }
 
-  /* --- Nachricht / Fehlerzustände ---------------------------------------- */
 
   function renderMessage(title, text, links) {
     root.innerHTML = `
@@ -51,7 +42,6 @@
       </div>`;
   }
 
-  /* --- Ansichtsmodus (read-only) ----------------------------------------- */
 
   function renderView(p, { isPreview, viewer } = {}) {
     document.title = `${p.name} – Profil – StudyWork`;
@@ -83,7 +73,7 @@
          </div>`
       : '';
 
-    // Companies return to their dashboard, everyone else to the job search.
+    
     const backHref = viewer && viewer.role === 'company' ? 'company-dashboard.html' : 'jobs.html';
     const backLabel = viewer && viewer.role === 'company' ? 'Zurück zum Dashboard' : 'Zurück zur Jobsuche';
     const previewBanner = isPreview
@@ -112,8 +102,6 @@
         ${p.email ? `<p class="text-muted" style="margin-top:16px;font-size:0.9rem;">Kontakt: <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></p>` : ''}
       </div>`;
   }
-
-  /* --- Bearbeitungsmodus (eigenes Profil) -------------------------------- */
 
   function renderEdit(p) {
     document.title = 'Mein Profil – StudyWork';
@@ -214,7 +202,7 @@
     form.addEventListener('submit', onSubmit);
     document.getElementById('delete-account').addEventListener('click', onDeleteAccount);
 
-    // CV file input is shared by the "upload" and "replace" buttons.
+    
     document.getElementById('cv-file').addEventListener('change', onCvFile);
     renderCvSection(p);
 
@@ -225,7 +213,7 @@
   const CV_MAX_BYTES = 3 * 1024 * 1024;
   const FILE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
 
-  // Renders the CV block (uploaded state vs empty) and wires its buttons.
+  
   function renderCvSection(profile) {
     const box = document.getElementById('cv-section');
     if (!box) return;
@@ -259,10 +247,10 @@
     }
   }
 
-  // Validates the chosen file, reads it as base64 and uploads it.
+  
   function onCvFile(event) {
     const file = event.target.files && event.target.files[0];
-    event.target.value = ''; // allow re-selecting the same file later
+    event.target.value = ''; 
     if (!file) return;
     if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
       showToast('Bitte eine PDF-Datei auswählen.', 'error');
@@ -274,7 +262,7 @@
     }
     const reader = new FileReader();
     reader.onload = async () => {
-      // result is a data URL: "data:application/pdf;base64,XXXX" – send only XXXX.
+      
       const base64 = String(reader.result).split(',')[1] || '';
       try {
         const updated = await API.students.uploadCv({ filename: file.name, data: base64 });
@@ -300,7 +288,7 @@
     }
   }
 
-  // Loads and renders the student's saved job alerts (with live match counts).
+  
   async function renderMyAlerts() {
     const box = document.getElementById('my-alerts');
     if (!box) return;
@@ -319,7 +307,7 @@
     }
   }
 
-  // Human-readable summary + a shareable jobs.html link for an alert's criteria.
+  
   function alertRowHtml(alert) {
     const parts = [];
     if (alert.title) parts.push(`„${esc(alert.title)}"`);
@@ -333,7 +321,6 @@
     if (alert.job_type) sp.set('job_type', alert.job_type);
     const href = sp.toString() ? `jobs.html?${sp.toString()}` : 'jobs.html';
 
-    // List the jobs this alert currently suggests (newest first, max 5).
     const matches = alert.matches || [];
     let matchesHtml;
     if (!matches.length) {
@@ -378,7 +365,7 @@
     }
   }
 
-  // Permanently deletes the student's own account (with confirmation).
+  
   async function onDeleteAccount() {
     const ok = await confirmDelete(
       'Konto wirklich löschen? Dein Profil und alle deine Bewerbungen werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.'
@@ -399,7 +386,7 @@
     }
   }
 
-  // Loads and renders the logged-in student's own applications + their status.
+  
   async function renderMyApplications() {
     const box = document.getElementById('my-applications');
     if (!box) return;
@@ -478,7 +465,7 @@
     const isPreview = params.has('preview');
     const user = await userReady;
 
-    // View mode: an id is given (and it isn't our own non-preview profile).
+    
     const idNum = Number(idParam);
     const viewingOwn = user && user.role === 'student' && idNum === user.id;
 
@@ -493,7 +480,7 @@
       return;
     }
 
-    // Edit mode: own profile – requires a student login.
+    
     if (!user) {
       renderMessage('Anmeldung erforderlich', 'Bitte melde dich als Student an, um dein Profil zu bearbeiten.',
         '<a class="btn btn-primary" href="login.html">Anmelden</a><a class="btn btn-secondary" href="register.html">Registrieren</a>');
