@@ -1,13 +1,5 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Routes for /api/v1/jobs – full CRUD for job postings.
-// Methods: GET (list + filters), GET/:id, POST, PUT, PATCH, DELETE.
-// All queries use prepared statements (pool.execute) to prevent SQL injection.
-// Reading is public; creating/changing/deleting requires a logged-in company
-// that owns the posting (requireCompany middleware + ownership checks).
-// ---------------------------------------------------------------------------
-
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
@@ -21,17 +13,11 @@ const {
   isTooLong,
 } = require('../helpers');
 
-// Allowed ENUM values – kept in sync with the schema in db_setup.sql.
 const JOB_TYPES = ['Teilzeit', 'Vollzeit', 'Werkstudent', 'Praktikum', 'Minijob'];
 const JOB_STATUSES = ['aktiv', 'pausiert', 'geschlossen'];
 
-// Maximum field lengths (mirror the column sizes in db_setup.sql; the
-// description cap keeps postings readable and matches the form's maxlength).
 const MAX = { title: 150, description: 5000, location: 100, salary_range: 50 };
 
-/**
- * Collects length errors for the optional text fields shared by POST/PUT/PATCH.
- */
 function lengthErrors({ title, description, location, salary_range }) {
   const errors = [];
   if (isTooLong(title, MAX.title)) errors.push(`title darf höchstens ${MAX.title} Zeichen lang sein.`);
@@ -41,9 +27,6 @@ function lengthErrors({ title, description, location, salary_range }) {
   return errors;
 }
 
-/**
- * Loads a single job including its company name, or null if not found.
- */
 async function fetchJobById(id) {
   const [rows] = await pool.execute(
     `SELECT j.*, c.name AS company_name
@@ -92,8 +75,6 @@ router.get('/', async (req, res) => {
     const where = [];
     const params = [];
 
-    // Each filter is added as a parameterised condition – user input never
-    // gets concatenated into the SQL string directly.
     if (isNonEmptyString(title)) {
       where.push('j.title LIKE ?');
       params.push(`%${title.trim()}%`);
@@ -211,7 +192,7 @@ router.post('/', requireCompany, async (req, res) => {
       return sendError(res, 400, errors.join(' '));
     }
 
-    // A company may only post jobs in its own name.
+
     if (company_id !== undefined && Number(company_id) !== req.company.id) {
       return sendError(res, 403, 'Stellenanzeigen können nur für das eigene Unternehmen erstellt werden.');
     }
@@ -294,7 +275,6 @@ router.put('/:id', requireCompany, async (req, res) => {
     if (errors.length) {
       return sendError(res, 400, errors.join(' '));
     }
-    // Postings cannot be transferred to another company.
     if (company_id !== undefined && Number(company_id) !== req.company.id) {
       return sendError(res, 403, 'Stellenanzeigen können nicht auf ein anderes Unternehmen übertragen werden.');
     }
@@ -373,7 +353,6 @@ router.patch('/:id', requireCompany, async (req, res) => {
     const params = [];
     const errors = [];
 
-    // Postings cannot be transferred to another company.
     if (body.company_id !== undefined && Number(body.company_id) !== req.company.id) {
       errors.push('Stellenanzeigen können nicht auf ein anderes Unternehmen übertragen werden.');
     }
@@ -419,11 +398,9 @@ router.patch('/:id', requireCompany, async (req, res) => {
   }
 });
 
-// Allowed report reasons – kept in sync with the frontend dropdown.
 const REPORT_REASONS = ['fake', 'spam', 'abgelaufen', 'unangemessen', 'sonstiges'];
 
 // POST /api/v1/jobs/:id/report – report a posting (public; no login required).
-// Reports are stored for review; in this MVP there is no moderation UI yet.
 /**
  * @swagger
  * /api/v1/jobs/{id}/report:

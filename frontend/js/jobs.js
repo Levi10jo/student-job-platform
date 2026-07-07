@@ -326,6 +326,17 @@
     }
 
     function applyFormHtml(job) {
+      const user = window.StudyWork.getUser();
+      if (user && user.role === 'company') {
+      return `
+        <aside class="card card-pad">
+          <h2>Bewerbung nicht möglich</h2>
+          <p class="text-muted">
+            Du bist als Unternehmen angemeldet.
+            Bewerbungen können nur von Studenten eingereicht werden.
+          </p>
+        </aside>`;
+      }
       if (job.status !== 'aktiv') {
         const message = job.status === 'geschlossen'
           ? 'Diese Stelle ist geschlossen und nimmt keine Bewerbungen mehr entgegen.'

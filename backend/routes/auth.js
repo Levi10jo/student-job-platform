@@ -1,10 +1,5 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Routes for /api/v1/auth – registration, login, logout and session lookup.
-// Both roles use the same endpoints; the "role" field selects the table:
-//   role "student" -> students, role "company" -> companies.
-// ---------------------------------------------------------------------------
 
 const express = require('express');
 const router = express.Router();
@@ -30,20 +25,14 @@ const {
 
 const ROLES = ['student', 'company'];
 const PASSWORD_MIN_LENGTH = 8;
-// Upper bound for passwords: scrypt is deliberately expensive, so absurdly
-// long input must be rejected before hashing (denial-of-service guard).
 const PASSWORD_MAX_LENGTH = 100;
-// Maximum field lengths (mirror the column sizes in db_setup.sql).
 const MAX = { name: 100, email: 100, description: 2000, website: 255 };
 
-/** The public, password-free representation of a logged-in user. */
 function publicUser(role, row) {
   return { role, id: row.id, name: row.name, email: row.email };
 }
 
-/** True if the email is already registered in the given table. */
 async function emailExists(table, email) {
-  // Table name comes from our own ROLES mapping, never from user input.
   const [rows] = await pool.execute(`SELECT id FROM ${table} WHERE email = ?`, [email]);
   return rows.length > 0;
 }
@@ -163,8 +152,6 @@ router.post('/login', async (req, res) => {
     if (!ROLES.includes(role) || !isValidEmail(email) || !isNonEmptyString(password)) {
       return sendError(res, 400, 'Bitte Rolle, E-Mail-Adresse und Passwort angeben.');
     }
-    // No stored password is longer than the maximum – skip the expensive
-    // scrypt computation for oversized input (denial-of-service guard).
     if (password.length > PASSWORD_MAX_LENGTH) {
       return sendError(res, 401, 'E-Mail-Adresse oder Passwort ist falsch.');
     }
@@ -175,8 +162,6 @@ router.post('/login', async (req, res) => {
       [email.trim()]
     );
 
-    // Same error for "unknown email" and "wrong password" – this way the
-    // endpoint cannot be used to probe which addresses are registered.
     const row = rows[0];
     const valid = row && (await verifyPassword(password, row.password_hash));
     if (!valid) {

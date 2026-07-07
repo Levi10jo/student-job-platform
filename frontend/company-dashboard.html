@@ -94,7 +94,7 @@
           <input type="hidden" id="job-id" />
           <div class="form-group">
             <label for="job-title">Titel <span class="required" aria-hidden="true">*</span></label>
-            <input class="input" type="text" id="job-title" name="title" maxlength="150" />
+            <input class="input" type="text" id="job-title" name="title" maxlength="35" />
             <span class="field-error" id="err-title"></span>
           </div>
           <div class="form-group">
@@ -127,11 +127,11 @@
           <div class="form-grid-2">
             <div class="form-group">
               <label for="job-location">Ort</label>
-              <input class="input" type="text" id="job-location" name="location" maxlength="100" placeholder="z. B. Berlin oder Remote" />
+              <input class="input" type="text" id="job-location" name="location" maxlength="30" placeholder="z. B. Berlin oder Remote" />
             </div>
             <div class="form-group">
               <label for="job-salary">Vergütung</label>
-              <input class="input" type="text" id="job-salary" name="salary_range" maxlength="50" placeholder="z. B. 15 €/h" />
+              <input class="input" type="text" id="job-salary" name="salary_range" maxlength="15" placeholder="z. B. 15 €/h" />
             </div>
           </div>
         </div>
@@ -142,6 +142,27 @@
       </form>
     </div>
   </div>
+
+  <div class="modal-backdrop" id="delete-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+      <div class="modal-head">
+        <h2 id="delete-modal-title">Löschen bestätigen</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Dialog schließen">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p id="delete-modal-text" class="text-muted"></p>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn btn-secondary" type="button" data-close>Abbrechen</button>
+        <button class="btn btn-danger" type="button" id="delete-confirm-btn">Endgültig löschen</button>
+      </div>
+    </div>
+  </div>
+  
 
   <script src="js/api.js" defer></script>
   <script src="js/company.js" defer></script>

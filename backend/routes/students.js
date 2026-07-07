@@ -1,16 +1,5 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Routes for /api/v1/students – the student "About me" profile.
-// Methods: GET /me, PUT /me (own profile, student login required) and
-// GET /:id (view a profile, with visibility-based access control).
-//
-// Visibility model (profile_visibility column):
-//   'applied' – only companies the student has applied to may view the profile
-//   'all'     – every logged-in company may view it
-// The student themselves may always view their own profile.
-// ---------------------------------------------------------------------------
-
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
@@ -24,21 +13,17 @@ const {
 } = require('../helpers');
 
 const VISIBILITIES = ['applied', 'all'];
-// Maximum field lengths (mirror the column sizes in db_setup.sql).
 const MAX = {
   headline: 150, bio: 2000, skills: 500,
   study_program: 150, university: 150, location: 100, website: 255,
 };
 
-// Public profile columns (never expose password_hash or the raw cv_data blob;
-// cv_filename/cv_uploaded_at signal that a CV exists and is downloadable).
 const PROFILE_COLUMNS =
   'id, name, email, headline, bio, skills, study_program, university, location, website, profile_visibility, cv_filename, cv_uploaded_at, created_at';
 
 // CV upload limits.
 const CV_MAX_BYTES = 3 * 1024 * 1024; // 3 MB
 
-/** Loads a student profile by id, or null. */
 async function fetchStudentById(id) {
   const [rows] = await pool.execute(
     `SELECT ${PROFILE_COLUMNS} FROM students WHERE id = ?`,
@@ -47,10 +32,6 @@ async function fetchStudentById(id) {
   return rows[0] || null;
 }
 
-/**
- * True if the given company has at least one application from this student
- * (matched by the student's email, since applications store the email).
- */
 async function companyHasApplicationFrom(companyId, studentEmail) {
   const [rows] = await pool.execute(
     `SELECT 1
@@ -63,11 +44,6 @@ async function companyHasApplicationFrom(companyId, studentEmail) {
   return rows.length > 0;
 }
 
-/**
- * Decides whether `viewer` (or null for guests) may see `student`'s profile:
- * the student themselves, a company the student applied to, or anyone when the
- * profile is public ('all'). Returns true/false.
- */
 async function canViewProfile(viewer, student) {
   if (viewer && viewer.role === 'student' && viewer.id === student.id) return true;
   if (viewer && viewer.role === 'company') {
@@ -102,7 +78,6 @@ router.get('/me', requireStudent, async (req, res) => {
 });
 
 // GET /api/v1/students/me/applications – the logged-in student's own
-// applications (matched by their account email), with job + company info.
 /**
  * @swagger
  * /api/v1/students/me/applications:
@@ -139,9 +114,6 @@ router.get('/me/applications', requireStudent, async (req, res) => {
 
 const ALERT_JOB_TYPES = ['Teilzeit', 'Vollzeit', 'Werkstudent', 'Praktikum', 'Minijob'];
 
-// Builds the shared WHERE clause for an alert's (optional) criteria.
-// A job "matches" an alert when it is active and fits every set criterion –
-// exactly the same logic the job search uses, so the alert is just a saved search.
 function alertWhere(alert) {
   const where = ["j.status = 'aktiv'"];
   const params = [];
@@ -151,17 +123,14 @@ function alertWhere(alert) {
   return { clause: where.join(' AND '), params };
 }
 
-/** Counts currently active jobs matching an alert's criteria. */
 async function countAlertMatches(alert) {
   const { clause, params } = alertWhere(alert);
   const [rows] = await pool.execute(`SELECT COUNT(*) AS n FROM jobs j WHERE ${clause}`, params);
   return rows[0].n;
 }
 
-/** Returns the newest active jobs matching an alert (the suggested jobs). */
 async function fetchAlertMatches(alert, limit) {
   const { clause, params } = alertWhere(alert);
-  // limit is an internal integer, safely inlined (LIMIT can't be a bound param).
   const [rows] = await pool.execute(
     `SELECT j.id, j.title, j.job_type, j.location, j.created_at, c.name AS company_name
      FROM jobs j JOIN companies c ON c.id = j.company_id
@@ -174,8 +143,6 @@ async function fetchAlertMatches(alert, limit) {
 }
 
 // GET /api/v1/students/me/alerts – own alerts incl. current matches.
-// Each alert carries match_count (total) and matches (the newest few jobs),
-// so the profile can show exactly which jobs the alert suggests.
 /**
  * @swagger
  * /api/v1/students/me/alerts:
@@ -240,10 +207,7 @@ router.post('/me/alerts', requireStudent, async (req, res) => {
       'INSERT INTO job_alerts (student_id, title, location, job_type) VALUES (?, ?, ?, ?)',
       [req.student.id, clean(title, 150), clean(location, 100), ALERT_JOB_TYPES.includes(job_type) ? job_type : '']
     );
-    // Simulated e-mail delivery: in a real system a scheduled job would send a
-    // mail when matching postings appear. Here we only log it in development.
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
       console.log(`[Job-Alert] (simuliert) Benachrichtigungen an ${req.student.email} eingerichtet (Alert #${result.insertId}).`);
     }
     const [rows] = await pool.execute(
@@ -328,7 +292,6 @@ router.put('/me', requireStudent, async (req, res) => {
     const body = req.body || {};
     const errors = [];
 
-    // All profile fields are optional strings; validate lengths only.
     Object.keys(MAX).forEach((field) => {
       if (isTooLong(body[field], MAX[field])) {
         errors.push(`${field} darf höchstens ${MAX[field]} Zeichen lang sein.`);
@@ -342,12 +305,10 @@ router.put('/me', requireStudent, async (req, res) => {
       return sendError(res, 400, errors.join(' '));
     }
 
-    // Normalise: empty strings become NULL; trim everything.
     const val = (field) => {
       const v = body[field];
       return typeof v === 'string' && v.trim() ? v.trim() : null;
     };
-    // Normalise the website so links work even without a typed protocol.
     let website = val('website');
     if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
 
@@ -414,8 +375,6 @@ router.put('/me/cv', requireStudent, async (req, res) => {
     if (buffer.length > CV_MAX_BYTES) {
       return sendError(res, 400, `Die Datei ist zu groß (max. ${Math.round(CV_MAX_BYTES / (1024 * 1024))} MB).`);
     }
-    // Verify it really is a PDF (magic header) – cheap defence against
-    // mislabelled or malicious uploads.
     if (buffer.slice(0, 5).toString('latin1') !== '%PDF-') {
       return sendError(res, 400, 'Die Datei ist keine gültige PDF-Datei.');
     }
@@ -456,8 +415,6 @@ router.delete('/me/cv', requireStudent, async (req, res) => {
 });
 
 // DELETE /api/v1/students/me – delete own account.
-// Removes the student's own applications (their personal data, linked by email,
-// no FK) and the account row, then ends all of the student's sessions.
 /**
  * @swagger
  * /api/v1/students/me:
@@ -561,7 +518,6 @@ router.get('/:id/cv', async (req, res) => {
     if (!student.cv_filename) {
       return sendError(res, 404, 'Für dieses Profil ist kein Lebenslauf hinterlegt.');
     }
-    // Fetch the raw base64 blob only now (kept out of the normal profile query).
     const [rows] = await pool.execute('SELECT cv_data FROM students WHERE id = ?', [Number(id)]);
     const buffer = Buffer.from(rows[0].cv_data || '', 'base64');
     res.setHeader('Content-Type', 'application/pdf');

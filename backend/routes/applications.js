@@ -1,14 +1,5 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Routes for /api/v1/applications – job applications submitted by students.
-// Methods: GET (list + job_id filter), GET/:id, POST, PATCH, DELETE.
-// (No PUT per spec – an application is created once and then only changes status.)
-// POST is public (guests may apply); all reading/changing/deleting requires a
-// logged-in company and is limited to applications for its own job postings,
-// because applications contain personal data (names, e-mail addresses).
-// ---------------------------------------------------------------------------
-
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
@@ -23,16 +14,10 @@ const {
   isTooLong,
 } = require('../helpers');
 
-// Allowed status ENUM values – kept in sync with db_setup.sql.
 const APPLICATION_STATUSES = ['offen', 'gesehen', 'angenommen', 'abgelehnt'];
 
-// Maximum field lengths (mirror the column sizes in db_setup.sql).
 const MAX = { student_name: 100, student_email: 100, cover_letter: 2000 };
 
-/**
- * Loads a single application including the related job title and the id of
- * the company owning the job (needed for the ownership checks), or null.
- */
 async function fetchApplicationById(id) {
   const [rows] = await pool.execute(
     `SELECT a.*, j.title AS job_title, j.company_id
@@ -44,7 +29,6 @@ async function fetchApplicationById(id) {
   return rows[0] || null;
 }
 
-/** Loads id + status of a job, or null if it does not exist. */
 async function fetchJobStatus(jobId) {
   const [rows] = await pool.execute('SELECT id, status FROM jobs WHERE id = ?', [jobId]);
   return rows[0] || null;
@@ -69,7 +53,6 @@ async function fetchJobStatus(jobId) {
  *         description: Nicht als Unternehmen angemeldet
  */
 // GET /api/v1/applications  – optional filter: ?job_id=
-// Always limited to applications for the logged-in company's own jobs.
 router.get('/', requireCompany, async (req, res) => {
   try {
     const { job_id } = req.query;
@@ -81,8 +64,6 @@ router.get('/', requireCompany, async (req, res) => {
       params.push(Number(job_id));
     }
 
-    // LEFT JOIN students on the applicant email so the dashboard knows whether
-    // the applicant has an account (and can link to their profile).
     const [rows] = await pool.execute(
       `SELECT a.*, j.title AS job_title, s.id AS student_id
        FROM applications a
@@ -160,9 +141,6 @@ router.get('/:id', requireCompany, async (req, res) => {
  *       400:
  *         description: Fehlerhafte Eingabe, inaktive Stelle oder Doppelbewerbung
  */
-// POST /api/v1/applications  – submit a new application.
-// Public endpoint: new applications always start with status "offen" – the
-// status can only be changed later by the company via PATCH.
 router.post('/', async (req, res) => {
   try {
     const { job_id, student_name, student_email, cover_letter } = req.body || {};
@@ -178,7 +156,6 @@ router.post('/', async (req, res) => {
       return sendError(res, 400, errors.join(' '));
     }
 
-    // The job must exist and accept applications (only active postings do).
     const job = await fetchJobStatus(Number(job_id));
     if (!job) {
       return sendError(res, 400, 'Angegebener Job (job_id) existiert nicht.');
@@ -187,7 +164,6 @@ router.post('/', async (req, res) => {
       return sendError(res, 400, 'Diese Stelle nimmt derzeit keine Bewerbungen entgegen.');
     }
 
-    // Prevent duplicate applications (same email for the same job).
     const [dupRows] = await pool.execute(
       'SELECT id FROM applications WHERE job_id = ? AND student_email = ?',
       [Number(job_id), student_email.trim()]
@@ -213,8 +189,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/v1/applications/:id – partial update, primarily the status.
-// Only the company owning the related job posting may change an application.
 /**
  * @swagger
  * /api/v1/applications/{id}:

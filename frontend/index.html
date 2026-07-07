@@ -26,7 +26,7 @@
           StudyWork bündelt Werkstudenten-, Praktikums- und Minijobs an einem Ort.
           Filtere nach Ort und Typ, sieh dir die Details an und bewirb dich in Minuten.
         </p>
-        <!-- Quick search: a plain GET form – jobs.html reads ?title= from the URL -->
+       
         <form class="hero-search" action="jobs.html" method="get" role="search" aria-label="Jobs durchsuchen">
           <label class="visually-hidden" for="hero-q">Wonach suchst du?</label>
           <input class="input" type="search" id="hero-q" name="title" placeholder="Wonach suchst du? z. B. Marketing" />
@@ -128,7 +128,7 @@
         document.getElementById('stat-jobs').textContent = jobs.length;
         document.getElementById('stat-companies').textContent = companies.length;
 
-        // The API returns newest first – show the three most recent postings.
+        
         const latest = jobs.slice(0, 3);
         latestEl.innerHTML = latest.length
           ? latest.map(renderJobCard).join('')

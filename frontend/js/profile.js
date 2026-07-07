@@ -289,7 +289,8 @@
   }
 
   async function onCvRemove() {
-    if (!window.confirm('Lebenslauf wirklich entfernen?')) return;
+    const ok = await confirmDelete('Lebenslauf wirklich entfernen?');
+    if (!ok) return;
     try {
       const updated = await API.students.deleteCv();
       showToast('Lebenslauf entfernt.', 'success');
@@ -379,8 +380,8 @@
 
   // Permanently deletes the student's own account (with confirmation).
   async function onDeleteAccount() {
-    const ok = window.confirm(
-      'Konto wirklich löschen?\nDein Profil und alle deine Bewerbungen werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.'
+    const ok = await confirmDelete(
+      'Konto wirklich löschen? Dein Profil und alle deine Bewerbungen werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.'
     );
     if (!ok) return;
     const btn = document.getElementById('delete-account');
@@ -511,4 +512,37 @@
         '<a class="btn btn-secondary" href="index.html">Zur Startseite</a>');
     }
   });
+
+  function confirmDelete(message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('delete-modal');
+      const text = document.getElementById('delete-modal-text');
+      const confirmBtn = document.getElementById('delete-confirm-btn');
+
+      text.textContent = message;
+      modal.hidden = false;
+
+      function cleanup(result) {
+        modal.hidden = true;
+        confirmBtn.removeEventListener('click', onConfirm);
+        modal.querySelectorAll('[data-close]').forEach((btn) => {
+          btn.removeEventListener('click', onCancel);
+        });
+        resolve(result);
+      }
+
+      function onConfirm() {
+        cleanup(true);
+      }
+
+      function onCancel() {
+        cleanup(false);
+      }
+
+      confirmBtn.addEventListener('click', onConfirm);
+      modal.querySelectorAll('[data-close]').forEach((btn) => {
+        btn.addEventListener('click', onCancel);
+      });
+    });
+  }
 })();

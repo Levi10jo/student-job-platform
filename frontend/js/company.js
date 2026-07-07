@@ -124,21 +124,29 @@
   // Shown when nobody (or a student) is logged in – the dashboard needs a
   // company account.
   function loginRequiredHtml() {
-    const user = getUser();
-    const hint = user && user.role === 'student'
-      ? `Du bist als Student (${esc(user.name)}) angemeldet. Das Dashboard steht nur Unternehmen zur Verfügung.`
-      : 'Melde dich mit deinem Unternehmenskonto an, um Stellenanzeigen zu veröffentlichen und Bewerbungen zu verwalten.';
+  const user = getUser();
+
+  const hint = 'Melde dich mit deinem Unternehmenskonto an, um Stellenanzeigen zu veröffentlichen und Bewerbungen zu verwalten.';
+
+  if (user && user.role === 'student') {
     return `
       <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <h3>Anmeldung erforderlich</h3>
-        <p>${hint}</p>
-        <div class="toolbar" style="justify-content:center;margin-top:18px;">
-          <a class="btn btn-primary" href="login.html">Anmelden</a>
-          <a class="btn btn-secondary" href="register.html">Unternehmen registrieren</a>
-        </div>
+        <h3>Zugriff nicht möglich</h3>
+        <p>Du bist als Student (${esc(user.name)}) angemeldet. Das Dashboard steht nur Unternehmen zur Verfügung.</p>
       </div>`;
   }
+
+  return `
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <h3>Anmeldung erforderlich</h3>
+      <p>${hint}</p>
+      <div class="toolbar" style="justify-content:center;margin-top:18px;">
+        <a class="btn btn-primary" href="login.html">Anmelden</a>
+        <a class="btn btn-secondary" href="register.html">Unternehmen registrieren</a>
+      </div>
+    </div>`;
+}
 
   function jobBlockHtml(job, apps) {
     const meta = [];
@@ -418,8 +426,8 @@
 
   async function deleteJob(id) {
     const job = currentJobs.find((j) => j.id === id);
-    const ok = window.confirm(
-      `Stellenanzeige „${job ? job.title : ''}“ wirklich löschen?\nAlle zugehörigen Bewerbungen werden ebenfalls entfernt.`
+    const ok = await confirmDelete(
+      `Stellenanzeige „${job ? job.title : ''}“ wirklich löschen? Alle zugehörigen Bewerbungen werden ebenfalls entfernt.`
     );
     if (!ok) return;
     try {
@@ -434,8 +442,8 @@
   // Removes a single application (e.g. spam or withdrawn by the applicant).
   async function deleteApplication(id) {
     const app = Object.values(currentApps).flat().find((a) => a.id === id);
-    const ok = window.confirm(
-      `Bewerbung von „${app ? app.student_name : ''}“ wirklich löschen?\nDies kann nicht rückgängig gemacht werden.`
+    const ok = await confirmDelete(
+     `Bewerbung von „${app ? app.student_name : ''}“ wirklich löschen? Dies kann nicht rückgängig gemacht werden.`
     );
     if (!ok) return;
     try {
@@ -568,8 +576,8 @@
   // the login session.
   async function deleteCompany() {
     if (!activeCompany) return;
-    const ok = window.confirm(
-      `Unternehmen „${activeCompany.name}“ wirklich löschen?\nAlle Stellenanzeigen und Bewerbungen dieses Unternehmens werden ebenfalls gelöscht.`
+    const ok = await confirmDelete(
+      `Unternehmen „${activeCompany.name}“ wirklich löschen? Alle Stellenanzeigen und Bewerbungen dieses Unternehmens werden ebenfalls gelöscht.`
     );
     if (!ok) return;
     try {
@@ -688,4 +696,37 @@
   }
 
   document.addEventListener('DOMContentLoaded', init);
+
+  function confirmDelete(message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('delete-modal');
+      const text = document.getElementById('delete-modal-text');
+      const confirmBtn = document.getElementById('delete-confirm-btn');
+
+      text.textContent = message;
+      modal.hidden = false;
+
+      function cleanup(result) {
+        modal.hidden = true;
+        confirmBtn.removeEventListener('click', onConfirm);
+        modal.querySelectorAll('[data-close]').forEach((btn) => {
+          btn.removeEventListener('click', onCancel);
+        });
+        resolve(result);
+      }
+
+      function onConfirm() {
+        cleanup(true);
+      }
+
+      function onCancel() {
+        cleanup(false);
+      }
+
+      confirmBtn.addEventListener('click', onConfirm);
+      modal.querySelectorAll('[data-close]').forEach((btn) => {
+        btn.addEventListener('click', onCancel);
+      });
+    });
+  }
 })();

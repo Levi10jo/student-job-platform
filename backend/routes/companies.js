@@ -1,12 +1,5 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Routes for /api/v1/companies – company accounts that post jobs.
-// Methods: GET (list), GET/:id, POST, PUT, DELETE.
-// Deleting a company cascades to its jobs and their applications (FK ON DELETE
-// CASCADE in the schema).
-// ---------------------------------------------------------------------------
-
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
@@ -21,13 +14,10 @@ const {
   isTooLong,
 } = require('../helpers');
 
-// Explicit column list: the password_hash must never leave the server.
 const PUBLIC_COLUMNS = 'id, name, email, description, website, created_at';
 
-// Maximum field lengths (mirror the column sizes in db_setup.sql).
 const MAX = { name: 100, email: 100, description: 2000, website: 255 };
 
-/** Collects length errors for the company text fields (POST/PUT). */
 function lengthErrors({ name, email, description, website }) {
   const errors = [];
   if (isTooLong(name, MAX.name)) errors.push(`name darf höchstens ${MAX.name} Zeichen lang sein.`);
@@ -37,9 +27,6 @@ function lengthErrors({ name, email, description, website }) {
   return errors;
 }
 
-/**
- * Loads a single company by id (without the password hash), or null.
- */
 async function fetchCompanyById(id) {
   const [rows] = await pool.execute(
     `SELECT ${PUBLIC_COLUMNS} FROM companies WHERE id = ?`,
@@ -48,10 +35,6 @@ async function fetchCompanyById(id) {
   return rows[0] || null;
 }
 
-/**
- * Returns true if the email is already used by another company.
- * `exceptId` lets PUT ignore the company's own current row.
- */
 async function emailTaken(email, exceptId = null) {
   const [rows] = exceptId
     ? await pool.execute('SELECT id FROM companies WHERE email = ? AND id != ?', [email, exceptId])
